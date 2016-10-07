@@ -1,0 +1,32 @@
+{% extends "base.tmpl" %}
+
+{% block content %}
+    <!-- Begin page content -->
+    <div class="container">
+      <div class="m-t-1">
+        <h1> Congratulations to your new PythonOnWheels Application !</h1>
+      </div>
+      <p class="lead">Welcome {{appname}}</p>
+      <p class="lead">
+        <h5>Next steps:</h5>
+        <ul>
+          <li>Add a model. <code>generate_model(modelname)</code></li>
+          <li>Add a handler. <code>generate_handler(modelname)</code></li>
+          <li>The server should restart automatically.</li>
+        </ul>
+      </p>
+     
+      <p class="lead">
+        <h5>Additionally you should:</h5>
+        <ul>
+          <li>Watch the getting started video ~ 15 Minutes</li>
+          <li>Read and code one of the app tutorials. (15 Minutes)</li>
+          <ul>
+            <li>Todo list with Tags [relations: tree, has_many, Web views, validation]</li>
+            <li>Blog [File upload, simple authentication, Has_many</li>
+            <li>Twitter clone [websockets, react.js views]</li>
+          </ul>
+        </ul>
+      </p>
+    </div>
+{% end %}
