@@ -43,27 +43,29 @@ def generate_app(appname, force=False):
     print("  ..processing(root): " +  os.path.dirname(os.path.abspath(__file__)))
     exclude_file_list = ["generate_app.py"]
     exclude_dir_list=[".git", "scripts", "tcl", "lib", "include"]
-    root=os.path.join(os.path.dirname(os.path.abspath(__file__)), "start")
-    print(" basename: " + str(root))
-    
-    for path, dirs, files in os.walk(root):
-        print("PROCESSING (path): " +  path)
-        elem_compare_path=os.path.basename(path)
-        for elem in dirs:
-            outpath =  os.path.join(path.replace("pow",appname))
-            abs_dir_path = os.path.normpath( os.path.join( outpath, elem ))
-            print("  ..creating (sub)directory: ", abs_dir_path)
-            try:
-                os.makedirs(abs_dir_path, exist_ok=force)
-            except:
-                print("    ... could not create dir: ", sys.exc_info()[0] )  
-        for elem in files:
-            if not elem_compare_path in exclude_dir_list:
-                print(" files dirs: " + str(dirs))
-                print(" files path: " + str(path))
-                outpath =  os.path.join(path.replace("pow",appname))
+    basename=os.path.dirname(os.path.abspath(__file__))
+    run=0
+    for root, dirs, files in os.walk(basename):
+        print("  ..processing(root): " +  root)
+        if str(root.split(os.path.pathsep)[-1:]) not in exclude_dir_list:
+            print(" New root: " + os.path.basename(os.path.dirname(root)))
+            for elem in dirs:
+                print(" dirs: " + str(dirs))
+                print(" the dir: " + elem)
+                if os.path.basename(os.path.dirname(elem)) not in exclude_dir_list:
+                    outpath =  os.path.join(root.replace("pow",appname))
+                    abs_dir_path = os.path.normpath( os.path.join( outpath, elem ))
+                    print("  ..creating (sub)directory: ", abs_dir_path)
+                    try:
+                        os.makedirs(abs_dir_path, exist_ok=force)
+                    except:
+                        print("    ... could not create dir: ", sys.exc_info()[0])
+                else:
+                    print("  ..Skipping dir: " + str(elem))
+            for elem in files:
+                outpath =  os.path.join(root.replace("pow",appname))
                 abs_dest_file_path = os.path.normpath( os.path.join( outpath, elem ))
-                abs_source_file_path = os.path.normpath( os.path.join( path, elem ))
+                abs_source_file_path = os.path.normpath( os.path.join( root, elem ))
                 if elem not in exclude_file_list:
                     print("  ..processing file: ", abs_source_file_path )
                     f = open(abs_source_file_path, "r", encoding="utf-8")
@@ -77,6 +79,10 @@ def generate_app(appname, force=False):
                     f = open(abs_dest_file_path, "w", encoding="utf-8")
                     f.write(out.decode("unicode_escape"))
                     f.close()
+                else:
+                    print("  ..skipped: " + str(elem))
+        else:
+            print(" skipped: " + root)
     return
 
 

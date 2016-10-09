@@ -19,7 +19,7 @@ server_settings = {
 }
 
 templates = {
-    "template_path"     :   server["template_path"],
+    "template_path"     :   server_settings["template_path"],
     "handler_path"      :   os.path.join(os.path.dirname(__file__), "handlers"),
     "model_path"        :   os.path.join(os.path.dirname(__file__), "models"),
     "stubs_path"        :   os.path.join(os.path.dirname(__file__), "stubs")

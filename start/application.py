@@ -6,7 +6,7 @@ import os
 import os.path
 import sys
 
-from {{appname}}.config import server as app_settings
+from {{appname}}.config import server_settings as app_settings
 from {{appname}}.powlib import merge_two_dicts
 from {{appname}}.dblib import Base, session, engine
 

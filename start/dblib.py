@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import MetaData
 
 
-conn_str = database["type"] + "://" + database["user"] + ":" + database["passwd"] + "@" +database["host"] + ":" +str(database["port"]) + "/" + database["name"]
+conn_str = database["type"] + "://" + database["user"] + ":" + database["passwd"] + "@" +database["host"] + ":" +str(database["port"]) + "/" + database["dbname"]
 
 engine = create_engine(conn_str)
 metadata = MetaData(engine)
