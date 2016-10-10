@@ -15,7 +15,7 @@ def camel_case(name):
     """
     return "".join([x.capitalize() for x in name.split("_")])
 
-def generate_model(model_name=None):
+def generate_model(model_name=None, appname=None):
     """ generates a small model with the given modelname
         also sets the right db and table settings and further boilerplate configuration.
         Template engine = tornado.templates
@@ -35,7 +35,8 @@ def generate_model(model_name=None):
     res = loader.load("sql_model_template.py").generate( 
         model_name=model_name, 
         model_name_plural=model_name_plural, 
-        model_class_name=model_class_name
+        model_class_name=model_class_name,
+        appname=appname
         )
     ofile.write(res)
     ofile.close()
@@ -60,4 +61,4 @@ if __name__ == "__main__":
     print("all args: ", args)
     #print(dir(args))
     #print("pluralized model name: ", pluralize(args.name))
-    generate_model(args.name)
+    generate_model(args.name, appname="{{appname}}")

@@ -17,7 +17,7 @@ def camel_case(name):
     """
     return "".join([x.capitalize() for x in name.split("_")])
 
-def generate_handler(handler_name):
+def generate_handler(handler_name, appname=None):
     """ generates a small model with the given modelname
         also sets the right db and table settings and further boilerplate configuration.
         Template engine = tornado.templates
@@ -35,7 +35,7 @@ def generate_handler(handler_name):
         handler_name=handler_name, 
         handler_class_name=handler_class_name,
         handler_model_class_name=handler_class_name,
-        appname="powtest"
+        appname=appname
         )
     ofile.write(res)
     ofile.close()
@@ -60,4 +60,4 @@ if __name__ == "__main__":
     print("all args: ", args)
     #print(dir(args))
     print("CamelCased handler name: ", camel_case(args.name))
-    generate_handler(args.name)
+    generate_handler(args.name, appname="{{appname}}")

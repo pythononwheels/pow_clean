@@ -40,7 +40,7 @@ myapp = {
 
 database = {
     "type"      :   "sqlite",
-    "dbname"    :   ":memory",
+    "dbname"    :   "sql.db",
     "host"      :   None,       
     "port"      :   None,   
     "user"      :   None,
