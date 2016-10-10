@@ -7,6 +7,8 @@ import tornado.template
 import os
 import sys
 import datetime
+import shutil
+from pathlib import Path
 
 def camel_case(name):
     """
@@ -15,70 +17,77 @@ def camel_case(name):
     """
     return "".join([x.capitalize() for x in name.split("_")])
 
-def pump_file(infile, outfile, appname):
-    """ 
-        pump ther infile thru the template engine in case
-        there is something to render.
-        most probably the correct import path startign with appname
-    """
-    loader = template.Loader(os.path.dirname(os.path.normpath(infile)))
-    ofile = open(outfile, "wb")
-    res = loader.load(infile).generate(appname=appname)
-    ofile.write(res)
-    ofile.close()
-    return True
+def copy_or_pump(src, dest, copy=False, appname=None):
+    if not copy:
+        print("    pumping to ----->", dest )
+        f = open(src, "r", encoding="utf-8")
+        instr = f.read()
+        f.close()
+        template = tornado.template.Template(instr)
+        out = template.generate(  
+                appname=appname,
+                current_date=datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+                )
+        f = open(dest, "w", encoding="utf-8")
+        f.write(out.decode("unicode_escape"))
+        f.close()
+    else:
+        # just copy file
+        print("    copying to ----->", dest )
+        shutil.copy( src, dest )
 
 def generate_app(appname, force=False):
     """ generates a small model with the given modelname
         also sets the right db and table settings and further boilerplate configuration.
         Template engine = tornado.templates
-    """
-    #
-    # walk down the dirtree pow/*
-    # pump all files thru the template engine and copy the result to
-    # appname/*
-    # exclude generate_app
-    #
+    """    
     print("  generating app: " + str(appname))
-    print("  ..processing(root): " +  os.path.dirname(os.path.abspath(__file__)))
-    exclude_file_list = ["generate_app.py"]
-    exclude_dir_list=[".git", "scripts", "tcl", "lib", "include"]
+    base=os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+    print("  base: " + base)
     root=os.path.join(os.path.dirname(os.path.abspath(__file__)), "start")
-    print(" basename: " + str(root))
+    print("  root: " +  root)
     
-    for path, dirs, files in os.walk(root):
-        print("PROCESSING (path): " +  path)
-        elem_compare_path=os.path.basename(path)
-        for elem in dirs:
-            outpath =  os.path.join(path.replace("pow",appname))
-            abs_dir_path = os.path.normpath( os.path.join( outpath, elem ))
-            print("  ..creating (sub)directory: ", abs_dir_path)
-            try:
-                os.makedirs(abs_dir_path, exist_ok=force)
-            except:
-                print("    ... could not create dir: ", sys.exc_info()[0] )  
-        for elem in files:
-            if not elem_compare_path in exclude_dir_list:
-                print(" files dirs: " + str(dirs))
-                print(" files path: " + str(path))
-                outpath =  os.path.join(path.replace("pow",appname))
-                abs_dest_file_path = os.path.normpath( os.path.join( outpath, elem ))
-                abs_source_file_path = os.path.normpath( os.path.join( path, elem ))
-                if elem not in exclude_file_list:
-                    print("  ..processing file: ", abs_source_file_path )
-                    f = open(abs_source_file_path, "r", encoding="utf-8")
-                    instr = f.read()
-                    f.close()
-                    template = tornado.template.Template(instr)
-                    out = template.generate(  
-                            appname=appname,
-                            current_date=datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
-                            )
-                    f = open(abs_dest_file_path, "w", encoding="utf-8")
-                    f.write(out.decode("unicode_escape"))
-                    f.close()
-    return
+    outdir=os.path.normpath(os.path.join(base, appname))
+    #outdir = os.path.join(outdir, appname)
+    print("  ..creating in: " +  outdir)
+    
+    os.makedirs(outdir, exist_ok=True)
+    template_exts = [".py", ".tmpl"]
+    exclude_dirs = ["static", "stubs", "views"]
 
+    #
+    # walk the root (/pow/start)
+    # and copy (for .py and .tmpl pump thru template engine first)
+    # all files to the new app dir (appname)
+    # 
+    for dirname, dirs, files in os.walk(root):
+        for f in files:
+            print(" processing: " + f)
+            print("  in: " + dirname)
+            path=Path(dirname)
+            index = path.parts.index("start")
+            opath = Path(outdir).joinpath(*path.parts[index+1:])
+            print("  out: " + str(opath))
+            filename, file_extension = os.path.splitext(f)
+            print("  filename: " + filename)
+            print("  file ext: " + file_extension)
+            
+            if not os.path.exists(str(opath)):
+                os.makedirs(str(opath), exist_ok=True)
+            if (file_extension in template_exts) and not (path.parts[-1] in exclude_dirs):
+                copy_or_pump(
+                    os.path.normpath(os.path.join(dirname, f)),
+                    os.path.normpath(os.path.join(str(opath), f)),
+                    copy=False,
+                    appname=appname
+                    )
+            else:
+                copy_or_pump(
+                    os.path.normpath(os.path.join(dirname, f)),
+                    os.path.normpath(os.path.join(str(opath), f)),
+                    copy=True,
+                    appname=appname
+                    )
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

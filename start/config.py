@@ -39,12 +39,12 @@ myapp = {
 
 
 database = {
-    "type"      :   "postgresql",
-    "dbname"    :   "powtest",
-    "host"      :   "localhost",
-    "port"      :   5432,
-    "user"      :   "powtest",
-    "passwd"    :   "powtest"
+    "type"      :   "sqlite",
+    "dbname"    :   ":memory",
+    "host"      :   None,       
+    "port"      :   None,   
+    "user"      :   None,
+    "passwd"    :   None
 }
 
 #from handlers.very_raw_own_handler import VeryRawOwnHandler

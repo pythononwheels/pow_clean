@@ -31,6 +31,8 @@ class Application(tornado.web.Application):
         settings = merge_two_dicts( dict(
             template_path=os.path.join(os.path.dirname(__file__), app_settings["template_path"]),
             static_path=os.path.join(os.path.dirname(__file__), app_settings["static_path"]),
+            db=engine,
+            Base=Base
         ) , app_settings)
         super(Application, self).__init__(self.handlers, **settings)
         self.session = session
