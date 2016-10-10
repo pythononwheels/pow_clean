@@ -3,7 +3,7 @@ from {{appname}}.models.{{handler_name}} import {{handler_model_class_name}}
 from {{appname}}.config import application
 from {{appname}}.server import app
 
-@app.add_routes("{{handler_name}}")
+@app.add_rest_routes("{{handler_name}}")
 class {{handler_name}}Handler(BaseHandler):
 
     # 
