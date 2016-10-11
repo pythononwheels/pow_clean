@@ -17,7 +17,7 @@ def camel_case(name):
     """
     return "".join([x.capitalize() for x in name.split("_")])
 
-def copy_or_pump(src, dest, copy=False, appname=None):
+def copy_or_pump(src, dest, copy=False, appname=None, sqlite_path=None):
     if not copy:
         print("    pumping to ----->", dest )
         f = open(src, "r", encoding="utf-8")
@@ -26,6 +26,7 @@ def copy_or_pump(src, dest, copy=False, appname=None):
         template = tornado.template.Template(instr)
         out = template.generate(  
                 appname=appname,
+                sqlite_path=sqlite_path,
                 current_date=datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
                 )
         f = open(dest, "w", encoding="utf-8")
@@ -60,6 +61,14 @@ def generate_app(appname, force=False):
     # and copy (for .py and .tmpl pump thru template engine first)
     # all files to the new app dir (appname)
     # 
+    sqlite_path=os.path.normpath(os.path.abspath(os.path.join(outdir, "sql.db")))
+    if sys.platform =="win32":
+        sqlite_path=sqlite_path.replace("\\", "\\\\")
+    elif sys.platform in ["linux", "darwin"] :
+        sqlite_path="/"+sqlite_path
+    else:
+        sqlite_path="Unknown system platform (" + sys.platform + "). Please set sqlite connection string yourself"
+
     for dirname, dirs, files in os.walk(root):
         for f in files:
             print(" processing: " + f)
@@ -79,15 +88,18 @@ def generate_app(appname, force=False):
                     os.path.normpath(os.path.join(dirname, f)),
                     os.path.normpath(os.path.join(str(opath), f)),
                     copy=False,
-                    appname=appname
+                    appname=appname,
+                    sqlite_path=sqlite_path
                     )
             else:
                 copy_or_pump(
                     os.path.normpath(os.path.join(dirname, f)),
                     os.path.normpath(os.path.join(str(opath), f)),
                     copy=True,
-                    appname=appname
+                    appname=appname,
+                    sqlite_path=sqlite_path
                     )
+    print(" DB path: " + sqlite_path)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

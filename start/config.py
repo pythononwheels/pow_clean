@@ -40,7 +40,7 @@ myapp = {
 
 database = {
     "type"      :   "sqlite",
-    "dbname"    :   "sql.db",
+    "dbname"    :   r"{{sqlite_path}}",
     "host"      :   None,       
     "port"      :   None,   
     "user"      :   None,

@@ -72,6 +72,16 @@ class Application(tornado.web.Application):
                 pass
             #print(dir(mod))
 
+    def show_routes(self):
+        """
+            show all current routes.
+        """
+        routelist= [(handler.regex.pattern, handler.handler_class) for handler in self.handlers[0][1]]
+        print(55*"-")
+        print("  Routing table (order matters) :")
+        print(55*"-")
+        for elem in routelist:
+            print('{0:<20} {1:<30} '.format(elem[0], str(elem[1])))
 
     #
     # the RESTful route decorator
