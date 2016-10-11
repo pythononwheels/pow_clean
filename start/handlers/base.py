@@ -2,6 +2,7 @@ import tornado.web
 import tornado.escape
 import json
 from {{appname}}.config import myapp 
+from {{appname}}.models.user import User
 #
 #
 # Base PoW handler (Controller)
@@ -47,6 +48,19 @@ class BaseHandler(tornado.web.RequestHandler):
         if callable(before_handler):
             print("calling before_handler for " +  str(self.__class__))
             before_handler()
+
+     def get_current_user(self):
+        """
+            very simple implementation. 
+            change to you own needs here or in your own subclassed base handler.
+
+        """
+        user_id = self.get_secure_cookie("blogdemo_user")
+        if not user_id: return None
+        u=User()
+        u=u.find_one(User.id==user_id)
+        return u
+
 
     def get_accept_format(self, format_param):
 
@@ -162,7 +176,8 @@ class BaseHandler(tornado.web.RequestHandler):
             return self.error(500, params, "HTTP/UPDATE needs an ID. ID must be an int")
 
 
-    def success(self, message=None, data=None, http_code=200, format=None, encoder=None):
+    def success(self, message=None, data=None, succ=None, prev=None,
+        http_code=200, format=None, encoder=None):
         """
             returns data and http_code.
             data will be converted to format.  (std = json)
@@ -179,11 +194,14 @@ class BaseHandler(tornado.web.RequestHandler):
         self.write(encoder.dumps({
             "status"    : http_code,
             "message"   : message,
-            "data"      : data
+            "data"      : data,
+            "next"      : succ,
+            "prev"      : prev
         }))
         self.finish()
 
-    def error(self, message=None, data=None, http_code=500, format=None):
+    def error(self, message=None, data=None, succ=None, prev=None,
+        http_code=500, format=None):
         self.set_status(http_code)
         if not format:
             format = self.format
@@ -196,7 +214,9 @@ class BaseHandler(tornado.web.RequestHandler):
             "data"      : data,
             "error"     : {
                 "message"   : message
-                }
+                },
+            "next"      : succ,
+            "prev"      : prev
         }))
         self.finish()
 
