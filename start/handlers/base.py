@@ -49,7 +49,7 @@ class BaseHandler(tornado.web.RequestHandler):
             print("calling before_handler for " +  str(self.__class__))
             before_handler()
 
-     def get_current_user(self):
+    def get_current_user(self):
         """
             very simple implementation. 
             change to you own needs here or in your own subclassed base handler.
