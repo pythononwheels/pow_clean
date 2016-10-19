@@ -1,6 +1,6 @@
 import tornado.ioloop
 import tornado.web
-from {{appname}}.handlers.base import BaseHandler
+from {{appname}}.handlers.base import BaseHandlerf
 from {{appname}}.application import app
 
 @app.add_route("/react/*")

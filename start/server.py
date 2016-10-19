@@ -9,9 +9,9 @@ import os
 import os.path
 import sys
 
-from {{appname}}.config import server_settings as app_settings
-from {{appname}}.powlib import merge_two_dicts
-from {{appname}}.application import Application
+from test.config import server_settings as app_settings
+from test.powlib import merge_two_dicts
+from test.application import Application
 
 app=Application()
 if __name__ == "__main__":
@@ -35,7 +35,13 @@ if __name__ == "__main__":
     #app.listen(app_settings["port"], **server_settings)#
     #app=Application()
     #print(app)
-    #print("routes: " + str(app.handlers))
+    print()
+    print(50*"-")
+    print("routes: " )
+    print(50*"-")
+    for idx,elem in enumerate(app.handlers[0][1]):
+        print("#"+str(idx)+": " + str(elem.regex) + " --> " + str(elem.handler_class))
+
     http_server = tornado.httpserver.HTTPServer(app)
     http_server.listen(app_settings["port"])
     tornado.ioloop.IOLoop.instance().start()
