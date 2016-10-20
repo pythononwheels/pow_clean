@@ -36,6 +36,7 @@ myapp = {
             "xml"   :   {{appname}}.encoders.JsonToXml()
     },
     "page_size"         : 10,
+    "enable_authentication"     :   False   # False, simple or custom
 }
 
 

@@ -20,12 +20,25 @@ class Application(tornado.web.Application):
     #
     handlers=[]
 
+    #routing list to handle absolute route positioning
+    handlers_tmp = []
     def __init__(self):
         self.handlers = routes
         # importing !"activates" the add_route decorator
         self.import_all_handlers()
         h=getattr(self.__class__, "handlers", None)
-        self.handlers+=h
+        #self.handlers+=h
+
+        # use the absolute positioning routing table
+        htmp=getattr(self.__class__, "handlers_tmp", None)
+        def get_key(item):
+            return item[1]
+        #print(list(reversed(sorted(htmp, key=get_key))))
+        self.show_positioned_routes( list(reversed(sorted(htmp, key=get_key))) )
+        hordered=[x[0] for x in reversed(sorted(htmp, key=get_key))]
+        #print(str(hordered))
+        self.handlers+=hordered
+
         # merge two dictionaries:  z = { **a, **b }
         # http://stackoverflow.com/questions/38987/how-to-merge-two-python-dictionaries-in-a-single-expression
         settings = merge_two_dicts( dict(
@@ -71,6 +84,16 @@ class Application(tornado.web.Application):
             except:
                 pass
             #print(dir(mod))
+
+    def show_positioned_routes(self, routes):
+        """
+            show all current routes.
+        """
+        print(55*"-")
+        print("  Positioned Routes:")
+        print(55*"-")
+        for elem in routes:
+            print(str(elem))
 
     def show_routes(self):
         """
@@ -137,7 +160,7 @@ class Application(tornado.web.Application):
     # the RESTful route decorator
     #
     #todo
-    def add_route(self, route):
+    def add_route(self, route, pos=0):
         """
             cls is the class that will get the given route / API route
             cls is automatically the decorated class
@@ -149,7 +172,16 @@ class Application(tornado.web.Application):
             cls_name = cls.__name__.lower()
             #print("added the following routes: " + r)
             handlers=getattr(self.__class__, "handlers", None)
-            handlers.append((route,cls))
+            handlers_tmp=getattr(self.__class__, "handlers_tmp", None)
+            handlers_tmp.append(((route,cls),pos))
+            if pos < 0:
+                if pos == -1:
+                    handlers.append((route,cls))
+                else:
+                    handlers.insert(len(handlers)-(pos+1),(route,cls))
+            elif pos >= 0:
+                handlers.insert(pos,(route,cls))
+            
             #print("handlers: " + str(self.handlers))
             print("ROUTING: added route for: " + cls.__name__ +  ": " + route)
             return cls

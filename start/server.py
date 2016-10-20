@@ -28,8 +28,10 @@ if __name__ == "__main__":
     tornado.options.parse_command_line()
 
     #app = tornado.web.Application(handlers=routes, **app_settings)
-
+    print()
+    print(50*"-")
     print("starting the pow server Server ")
+    print(50*"-")
     print("visit: https://localhost:" + str(app_settings["port"]))
     print("  DB: " + str(app.settings["db"]))
     #app.listen(app_settings["port"], **server_settings)#
@@ -37,7 +39,7 @@ if __name__ == "__main__":
     #print(app)
     print()
     print(50*"-")
-    print("routes: " )
+    print("Final routes (order matters from here on ;) " )
     print(50*"-")
     for idx,elem in enumerate(app.handlers[0][1]):
         print("#"+str(idx)+": " + str(elem.regex) + " --> " + str(elem.handler_class))

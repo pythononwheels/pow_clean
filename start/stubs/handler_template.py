@@ -38,17 +38,22 @@ class {{handler_name}}Handler(BaseHandler):
             )
         self.success(message="{{handler_model_class_name}} page: #" +str(page), data=res )  
 
+    @tornado.web.authenticated
     def edit(self, id=None):
         self.success(message="{{handler_model_class_name}}, edit id: " + str(id))
 
+    @tornado.web.authenticated
     def new(self):
         self.success("{{handler_model_class_name}}, new")
 
+    @tornado.web.authenticated
     def create(self):
         self.success(message="{{handler_model_class_name}}, create")
 
+    @tornado.web.authenticated
     def update(self, id=None):
         self.success("{{handler_model_class_name}}, update id: " + str(id))
 
+    @tornado.web.authenticated
     def destroy(self, id=None):
         self.success("{{handler_model_class_name}}, destroy id: " + str(id))
