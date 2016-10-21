@@ -8,6 +8,7 @@ class {{handler_name}}Handler(BaseHandler):
 
     # 
     # every pow handler automatically gets these RESTful routes
+    # thru the @app.add_rest_routes() decorator.
     #
     # 1  GET    /{{handler_name}}        #=> index
     # 2  GET    /{{handler_name}}/1      #=> show
@@ -18,6 +19,12 @@ class {{handler_name}}Handler(BaseHandler):
     # 7  PUT    /{{handler_name}}/1      #=> update
     # 8  POST   /{{handler_name}}        #=> create
     # 9  DELETE /{{handler_name}}/1      #=> destroy
+    #
+
+    # standard supported http methods are:
+    # SUPPORTED_METHODS = ("GET", "HEAD", "POST", "DELETE", "PATCH", "PUT", "OPTIONS")
+    # you can overwrite any of those directly or leave the @add_rest_routes out to have a basic 
+    # handler.
 
     def show(self, id=None):
         m={{handler_model_class_name}}()

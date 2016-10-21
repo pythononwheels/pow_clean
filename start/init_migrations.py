@@ -11,3 +11,6 @@ config.read(r'alembic.ini')
 config.set('alembic','sqlalchemy.url',conn_str)
 with open(r'alembic.ini', 'w') as configfile:
     config.write(configfile)
+print(70*"-")
+print("updated migration environment: " + conn_str)
+print(70*"-")

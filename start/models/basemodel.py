@@ -55,10 +55,8 @@ class BaseModel():
         setattr(self, "_jsonify", jschema_class())
         self.session=session
         #
-        # if there is a schema (cerberus)
-        # set it in the instance
+        # if there is a schema (cerberus) set it in the instance
         #
-
         if (getattr(self, "schema", False)) and ("schema" in self.__class__.__dict__):
             self.schema = self.__class__.__dict__["schema"]
         else:
@@ -68,14 +66,19 @@ class BaseModel():
         # setup values from kwargs or from init_from_<format> if format="someformat"
         #
         if "format" in kwargs:
-            #set the format and call the according init_from_<format> method
+            # set the format and call the according init_from_<format> method
+            # which initializes the instance with the given vaules (from data)
+            # e.g. Model(format=json, data={data})
             f = getattr(self, "init_from_" + kwargs["format"], None)
             if f:
                 f(kwargs)
         else:
+            # initializes the instanmce with the given kwargs values:
+            # e.g.: Model(test="sometext", title="sometitle")
             for key in kwargs.keys():
                 if key in self.__class__.__dict__:
                     setattr(self, key, kwargs[key])
+        self.table = self.metadata.tables[pluralize(self.__class__.__name__.lower())]
 
     @declared_attr
     def __tablename__(cls):

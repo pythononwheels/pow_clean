@@ -11,6 +11,7 @@ from {{appname}}.powlib import merge_two_dicts
 from {{appname}}.dblib import Base, session, engine
 
 from {{appname}}.config import routes
+from tornado.log import access_log
 
 class Application(tornado.web.Application):
     #
@@ -52,6 +53,28 @@ class Application(tornado.web.Application):
         self.engine = engine
         self.Base = Base
 
+     def log_request(self, handler):
+        """ 
+            custom log method
+            access_log is importef from tornado.log (http://www.tornadoweb.org/en/stable/_modules/tornado/log.html)
+            access_log = logging.getLogger("tornado.access")
+        """
+        #super().log_request(handler)
+        if "log_function" in self.settings:
+            self.settings["log_function"](handler)
+            return
+        if handler.get_status() < 400:
+            log_method = access_log.info
+        elif handler.get_status() < 500:
+            log_method = access_log.warning
+        else:
+            log_method = access_log.error
+        request_time = 1000.0 * handler.request.request_time()
+        #log_method("%d %s %.2fms", handler.get_status(),
+        #           handler._request_summary(), request_time)
+        log_method("%s %d %s %.2fms", handler.request.remote_ip, handler.get_status(),
+                   handler._request_summary(), request_time)
+    
     def import_all_handlers(self):
         """
             imports all handlers to execue the @add_routes decorator.

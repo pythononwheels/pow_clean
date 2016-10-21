@@ -1,10 +1,10 @@
 #
 # Model
 #
-from powtest.powlib import relation
-from powtest.dblib import Base 
+from {{appname}}.powlib import relation
+from {{appname}}.dblib import Base 
 
-@relation.has_many('childs')
+#@relation.has_many('childs')
 @relation.setup_schema()
 class Parent(Base):
     # https://media.readthedocs.org/pdf/cerberus/latest/cerberus.pdf
@@ -36,4 +36,4 @@ class Parent(Base):
         }
     # init
     def __init__(self, **kwargs):
-self.init_on_load(**kwargs)
+        self.init_on_load(**kwargs)
