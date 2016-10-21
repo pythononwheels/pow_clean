@@ -1,7 +1,8 @@
 from {{appname}}.handlers.base import BaseHandler
 from {{appname}}.models.{{handler_name}} import {{handler_model_class_name}}
-from {{appname}}.config import application
-from {{appname}}.server import app
+from {{appname}}.config import myapp, database
+from {{appname}}.application import app
+import tornado.web
 
 @app.add_rest_routes("{{handler_name}}")
 class {{handler_name}}Handler(BaseHandler):
@@ -38,9 +39,13 @@ class {{handler_name}}Handler(BaseHandler):
     
     def page(self, page=0):
         m={{handler_model_class_name}}()
-        page_size=application["page_size"]
+        page_size=myapp["page_size"]
+        if database["type"] == "sqlite":
+            limit=page_size
+        else:
+            limit=(page*page_size)+page_size
         res = m.find_all(as_json=True, 
-            limit=(page*page_size)+page_size,
+            limit=limit,
             offset=page*page_size
             )
         self.success(message="{{handler_model_class_name}} page: #" +str(page), data=res )  

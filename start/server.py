@@ -9,9 +9,9 @@ import os
 import os.path
 import sys
 
-from test.config import server_settings as app_settings
-from test.powlib import merge_two_dicts
-from test.application import Application
+from {{appname}}.config import server_settings as app_settings
+from {{appname}}.powlib import merge_two_dicts
+from {{appname}}.application import Application
 
 app=Application()
 if __name__ == "__main__":

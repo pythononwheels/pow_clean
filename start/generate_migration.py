@@ -4,7 +4,7 @@
 import os
 import alembic.config
 import sys
-from test.dblib import engine
+from {{appname}}.dblib import engine
 from alembic.config import Config
 from alembic import command
 import argparse
@@ -23,6 +23,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if args.message:
         alembic_cfg = Config(os.path.join(os.path.dirname(__file__), "alembic.ini"))
-        command.revision(alembic_cfg, autogenerate=True, message=message)
+        command.revision(alembic_cfg, autogenerate=True, message=args.message)
 
     

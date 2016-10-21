@@ -53,7 +53,7 @@ class Application(tornado.web.Application):
         self.engine = engine
         self.Base = Base
 
-     def log_request(self, handler):
+    def log_request(self, handler):
         """ 
             custom log method
             access_log is importef from tornado.log (http://www.tornadoweb.org/en/stable/_modules/tornado/log.html)
@@ -132,7 +132,7 @@ class Application(tornado.web.Application):
     #
     # the RESTful route decorator
     #
-    def add_rest_routes(self, route=None, api=None):
+    def add_rest_routes(self, route, api=None, pos=0):
         """
             cls is the class that will get the RESTful routes
             it is automatically the decorated class
@@ -155,24 +155,30 @@ class Application(tornado.web.Application):
             # default REST is the following pattern:
             # (r"/post/(?P<param1>[^\/]+)/?(?P<param2>[^\/]+)?/?(?P<param3>[^\/]+)?", PostHandler),
             action=""
-            if cls_name.endswith("handler"):
-                action=action[:-7]
-            else:
-                action = cls_name
-            if route:
-                action=route
+            # if cls_name.endswith("handler"):
+            #     action=action[:-7]
+            # else:
+            #     action = cls_name
+            # if route:
+            action=route
 
-            r="/"+action+"/(?P<param1>[^\/]+)/?(?P<param2>[^\/]+)?/?(?P<param3>[^\/]+)?"
+            r=r"/"+action+r"/(?P<param1>[^\/]+)/?(?P<param2>[^\/]+)?/?(?P<param3>[^\/]+)?"
             if api:
                 # render the given api in the route URL
-                r="/"+action+"/"+str(api)+"/(?P<param1>[^\/]+)/?(?P<param2>[^\/]+)?/?(?P<param3>[^\/]+)?"
+                r=r"/"+action+r"/"+str(api)+r"/(?P<param1>[^\/]+)/?(?P<param2>[^\/]+)?/?(?P<param3>[^\/]+)?"
             
             #print("added the following routes: " + r)
             handlers=getattr(self.__class__, "handlers", None)
             handlers.append((r,cls))
-            r="/"+action+"/*"
+            
+            # use the positioned handlers
+            handlers_tmp=getattr(self.__class__, "handlers_tmp", None)
+            handlers_tmp.append(((r,cls),pos))
+
+            r=r"/"+action+r"/*"
             #print("added the following routes: " + r)
             handlers.append((r,cls))
+            handlers_tmp.append(((r,cls),pos))
             #print("handlers: " + str(self.handlers))
             print("ROUTING: added RESTful routes for: " + cls.__name__ +  " as /" + action)
             #print(dir())
