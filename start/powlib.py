@@ -15,7 +15,7 @@ def get_class_name(name):
         test => Test
         testone => Testone
     """
-    print("class_name: " + "".join([c.capitalize() for c in name.split("_")]))
+    #print("class_name: " + "".join([c.capitalize() for c in name.split("_")]))
     return "".join([c.capitalize() for c in name.split("_")])
 
 
@@ -121,7 +121,7 @@ class powDecNew():
         self.relations = {}
     # rel is a plural string of the related model ("adresses", "comments"
     #
-    # the has many magic
+    # the has many magic ;)
     #
     def has_many(self, child_as_str):
         # cls is the class that has many of the related models (e.g. User, Post)
@@ -152,7 +152,7 @@ class powDecNew():
             setattr(child_klass, parent_name + "_id", Column(Integer, ForeignKey(pluralize(parent_name)+".id")))
             setattr(child_klass, parent_name, relationship(parent_class_name, back_populates=child_as_str))
             ##print(dir(rel))
-            print("RELATION: I see a: " + parent_class_name + " has many: " + child_as_str)
+            print(" .. RELATION: I see a: " + parent_class_name + " has many: " + child_as_str)
             return parent_class
         return decorator
 
@@ -205,7 +205,7 @@ class powDecNew():
             
            
             ##print(dir(rel))
-            print("RELATION: I see a: " + parent_class_name + " has many-to-many: " + children)
+            print(" .. RELATION: I see a: " + parent_class_name + " has many-to-many: " + children)
             return parent_class
         return decorator
 
@@ -238,7 +238,7 @@ class powDecNew():
             setattr(klass, cls_name + "_id", Column(Integer, ForeignKey(pluralize(cls_name)+".id")))
             setattr(klass, cls_name, relationship(cls_name.capitalize(), back_populates=rel_as_str))
             ##print(dir(rel))
-            print("RELATION: I see a: " + cls_name.capitalize() + " has many: " + rel_as_str)
+            print(" .. RELATION: I see a: " + cls_name.capitalize() + " has many: " + rel_as_str)
             return cls
         return decorator
     #
@@ -266,7 +266,7 @@ class powDecNew():
             setattr(parent, child_as_str, relationship(child_class_name))
             setattr(klass, parent_name + "_id", Column(Integer, ForeignKey(pluralize(parent_name)+".id")))
             ##print(dir(rel))
-            print("RELATION: I see a: " + parent_name.capitalize() + " has many: " + child_as_str)
+            print(" .. RELATION: I see a: " + parent_name.capitalize() + " has many: " + child_as_str)
             return parent
         return decorator
 
@@ -299,16 +299,17 @@ class powDecNew():
             setattr(klass, parent_name + "_id", Column(Integer, ForeignKey(parent_name+".id")))
             setattr(klass, parent_name, relationship(parent_name.capitalize(), back_populates=child_as_str))
             ##print(dir(rel))
-            print("RELATION: I see a: " + parent_name.capitalize() + " has many: " + child_as_str)
+            print(" .. RELATION: I see a: " + parent_name.capitalize() + " has many: " + child_as_str)
             return parent
         return decorator
     #
-    # tree
-    # see:
+    # tree / adjacence lists.
+    # see: http://docs.sqlalchemy.org/en/latest/orm/self_referential.html
     #
     def tree(self):
-        # cls is the class that has many of the related models (e.g. User, Post)
-        # klass below is the real class instance of the child
+        # cls is the class that will be enabled as a tree
+        # so cls can have many cls children ... and the childrens have a parent of type cls
+        # 
         def decorator(cls):
             # parent is the parent class of the relation
             cls_name = cls.__name__.lower()
@@ -316,9 +317,28 @@ class powDecNew():
             setattr(cls, "parent_id", Column(Integer, ForeignKey(pluralize(cls_name)+".id")))
             setattr(cls, "children", relationship(cls_name.capitalize()))
             ##print(dir(rel))
-            print("RELATION: I see a tree: " + cls_name.capitalize() )
+            print(" .. RELATION: I see a tree: " + cls_name.capitalize() )
             return cls
         return decorator
+
+
+   
+
+    def setup_cerberus_schema(self,what=""):
+        #
+        # setup a cerberus schema from a sqlalchemy column definition
+        #
+        def decorator(cls):
+            print(" .. setup_cerberus_schema:" + cls.__name__.lower())
+            
+            for elem in cls..keys():
+                # now set the right schema keys and types type for the column
+
+            
+            return cls
+        return decorator
+
+
 
     #
     # sets up a sqlqlchemy schema from a cerberus schema dict
@@ -326,9 +346,9 @@ class powDecNew():
     # the schema definition at once!
     # ONE definition for SQL, NoSQL and Validation.
     # 
-    def setup_schema(self, what=""):
+    def setup_sql_schema(self, what=""):
         def decorator(cls):
-            print("in setup_schema:" + cls.__name__.lower())
+            print(" .. setup_sql_schema:" + cls.__name__.lower())
             #print("what: " + what)
             #print("schema is: " + str(cls.schema))
             #

@@ -5,7 +5,7 @@ from {{appname}}.powlib import relation
 from {{appname}}.dblib import Base 
 
 #@relation.has_many('childs')
-@relation.setup_schema()
+@relation.setup_sql_schema()
 class Parent(Base):
     # https://media.readthedocs.org/pdf/cerberus/latest/cerberus.pdf
     # you can use directly mapped to db types: (SQL AND NoSQL)

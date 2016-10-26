@@ -12,6 +12,7 @@ from {{appname}}.dblib import Base, session, engine
 
 from {{appname}}.config import routes
 from tornado.log import access_log
+import Datetime
 
 class Application(tornado.web.Application):
     #
@@ -52,6 +53,21 @@ class Application(tornado.web.Application):
         self.session = session
         self.engine = engine
         self.Base = Base
+
+    @classmethod
+    def log(self, message="", mode=logging.INFO):
+        """ 
+            custom log method
+            access_log is importef from tornado.log (http://www.tornadoweb.org/en/stable/_modules/tornado/log.html)
+            access_log = logging.getLogger("tornado.access")
+        """
+        if mode == logging.ERROR:
+             log_method = access_log.error
+        elif:
+            mode == logging.WARNING:
+        else:
+            log_method = access_log.info
+        log_method("%s %s", datetime.datetime.now().isoformat(), message)
 
     def log_request(self, handler):
         """ 

@@ -48,38 +48,43 @@ if __name__ == "__main__":
     #
     #print("all args: ", args)
 
-    alembic_cfg = Config(os.path.join(os.path.dirname(__file__), "alembic.ini"))
-    
-    # show the current version
-    if args.current:
-        command.current(alembic_cfg, verbose=False)
-        sys.exit()
+    import warnings
+    from sqlalchemy import exc as sa_exc
 
-    # show all changes
-    if args.history:
-        command.history(alembic_cfg, rev_range=None, verbose=False)
-        sys.exit()
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=sa_exc.SAWarning)
+        alembic_cfg = Config(os.path.join(os.path.dirname(__file__), "alembic.ini"))
+        
+        # show the current version
+        if args.current:
+            command.current(alembic_cfg, verbose=False)
+            sys.exit()
 
-    #
-    # really migrate
-    #
-    if args.direction == "up":
-        # upgrade
-        if args.revision:
-            args.revision
-            command.upgrade(alembic_cfg, revision=args.revision)
-        if args.number == "head":
-            command.upgrade(alembic_cfg, "head")
+        # show all changes
+        if args.history:
+            command.history(alembic_cfg, rev_range=None, verbose=False)
+            sys.exit()
+
+        #
+        # really migrate
+        #
+        if args.direction == "up":
+            # upgrade
+            if args.revision:
+                args.revision
+                command.upgrade(alembic_cfg, revision=args.revision)
+            if args.number == "head":
+                command.upgrade(alembic_cfg, "head")
+            else:
+                command.upgrade(alembic_cfg, "+" + args.number)
+        elif args.direction == "down":
+            # downgrade
+            command.downgrade(alembic_cfg, "-" + args.number)
         else:
-            command.upgrade(alembic_cfg, "+" + args.number)
-    elif args.direction == "down":
-        # downgrade
-        command.downgrade(alembic_cfg, "-" + args.number)
-    else:
-        print("Error: ")
-        print("You must at least give a direction info up / down to migrate:")
-        print(50*"-")
-        print(" Change history ")
-        print(50*"-")
-        command.history(alembic_cfg, rev_range=None, verbose=False)
-        sys.exit()
+            print("Error: ")
+            print("You must at least give a direction info up / down to migrate:")
+            print(50*"-")
+            print(" Change history ")
+            print(50*"-")
+            command.history(alembic_cfg, rev_range=None, verbose=False)
+            sys.exit()

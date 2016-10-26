@@ -7,31 +7,29 @@ from {{appname}}.powlib import pluralize
 import datetime
 from sqlalchemy import orm
 import sqlalchemy.inspection
-import cerberus
+from cerberus import Validator
 import xmltodict
 import json
 
-# class PowValidator(cerberus.Validator):
-#     def _validate_sqltype(self, field, value):
-#         """ SQLtypeonly for internal use
-#             and forwarding to SQLAlchemy
-#             THis test is only a pseudofunc to make
-#             cerberus accept the sqlprecision parameter
-
-#         The rule's arguments are validated against this schema:
-#         {'type': 'string'}
-#         """
-#         return True
+class MyValidator(Validator):
+    def _validate_type_default(self, value):
+        """ Enables validation for `objectid` schema attribute.
+        :param value: field value.
+        """
+        print(" validating: default value: " + str(value))
+        return True
 
 #print ('importing module %s' % __name__)
 class BaseModel():
     
     __table_args__ = { "extend_existing": True }
-
-    id =  Column(Integer, primary_key=True)
+    #
+    # setup the default pow column (id, last_update, created_at)
+    #
+    id = Column(Integer, primary_key=True)
     # create_date column will be populated with the result of the now() SQL function 
-    #(which, depending on backend, compiles into NOW() or CURRENT_TIMESTAMP in most cases
-    # see: http://docs.sqlalchemy.org/en/latest/core/defaults.html
+    # (which, depending on backend, compiles into NOW() or CURRENT_TIMESTAMP in most cases
+    #       see: http://docs.sqlalchemy.org/en/latest/core/defaults.html
     created_at = Column(DateTime, default=func.now())
     last_updated = Column(DateTime, onupdate=datetime.datetime.now, default=func.now())
     session = session
@@ -54,6 +52,7 @@ class BaseModel():
             )
         setattr(self, "_jsonify", jschema_class())
         self.session=session
+        self.table = self.metadata.tables[pluralize(self.__class__.__name__.lower())]
         #
         # if there is a schema (cerberus) set it in the instance
         #
@@ -61,7 +60,18 @@ class BaseModel():
             self.schema = self.__class__.__dict__["schema"]
         else:
             #print("No schema attribute found for this Model Class")
-            self.schema = {}
+            self.schema = None
+            # 
+            # setup a schema from the columns:
+            #
+            for col in self.table.columns.items():
+                # looks like this: 
+                # ('id', 
+                #  Column('id', Integer(), table=<comments>, primary_key=True, 
+                #     nullable=False))
+                col_type = col[1].type.python_type
+                print(str(col_type))
+
         #
         # setup values from kwargs or from init_from_<format> if format="someformat"
         #
@@ -72,13 +82,15 @@ class BaseModel():
             f = getattr(self, "init_from_" + kwargs["format"], None)
             if f:
                 f(kwargs)
+            else:
+                raise LookupError(" No Method: init_from_" + str(format) + " found")
         else:
             # initializes the instanmce with the given kwargs values:
             # e.g.: Model(test="sometext", title="sometitle")
             for key in kwargs.keys():
                 if key in self.__class__.__dict__:
                     setattr(self, key, kwargs[key])
-        self.table = self.metadata.tables[pluralize(self.__class__.__name__.lower())]
+        
 
     @declared_attr
     def __tablename__(cls):
@@ -170,7 +182,7 @@ class BaseModel():
             returns a list of the relation names
             see: http://stackoverflow.com/questions/21206818/sqlalchemy-flask-get-relationships-from-a-db-model
         """
-        rels = sqlalchemy.inspection.inspect(self.__class__).relationships
+        rels = self.get_relations()
         return rels.keys()
 
     def print_full(self):
@@ -196,8 +208,8 @@ class BaseModel():
         # __repr__ method is what happens when you look at it with the interactive prompt
         # or (unlikely: use the builtin repr() function)
         # usage: at interactive python prompt
-        # p=Post()
-        # p
+        #   p=Post()
+        #   p
         from pprint import pformat
         d = self.json_dump()
         return pformat(d,indent=+4)
@@ -205,11 +217,8 @@ class BaseModel():
     def __str__(self):
         #
         # The __str__ method is what happens when you print the object
-        # usage:
-        # p=Post()
-        # print(p)
+        #
         return self.__repr__()
-            
             
     def create_table(self):
         """
@@ -223,19 +232,27 @@ class BaseModel():
         """
         self.__table__.drop(bind=engine)
     
-    def upsert(self, session=None):
+    def upsert(self, session=None, autocommit=True):
         if not session:
             session = self.session
         session.add(self)
-        session.commit()        
+        if autocommit:
+            session.commit()        
 
     def get(self, id):
+        """ returns an instance by id """
         return self.query(self.__class__).get(id)
 
-    def from_statement(self, statement):
+    def raw_from_statement(self, statement):
+        """ executes the given raw sql statement """
         return self.query(self.__class__).from_statement(statement)
 
+    def raw_query(self):
+        """ returns a raw sqlalchermy query """
+        return session.query(self.__class__)
+        
     def page(self, *criterion, limit=None, offset=None):
+        """ paginates thru a result set """
         res = session.query(self.__class__).filter(*criterion).limit(limit).offset(offset).all()
         return res
 
@@ -262,10 +279,13 @@ class BaseModel():
             return[x.json_dump() for x in res]
         return res
 
-    def q(self):
-        return session.query(self.__class__)
-
     def find_dynamic(self, filter_condition = [('name', 'eq', 'klaas')]):
+        """
+            construtcs dynamic aueries from lists of search tuples.
+            format: [(attribute, operator, search_value)]
+            example: [('name', 'eq', 'klaas')]
+            => session.query(Model).find(Model.name == "klaas")
+        """
         dynamic_filtered_query_class = DynamicFilter(query=None, model_class=self,
                                   filter_condition=filter_condition)
         dynamic_filtered_query = dynamic_filtered_query_class.return_query()
