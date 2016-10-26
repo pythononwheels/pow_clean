@@ -1,6 +1,8 @@
 #
 # encoders for various output formats
 # 
+# the dumps() method will be called
+#
 import io
 import csv
 import dicttoxml
