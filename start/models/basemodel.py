@@ -57,6 +57,7 @@ class BaseModel():
         # if there is a schema (cerberus) set it in the instance
         #
         if (getattr(self, "schema", False)) and ("schema" in self.__class__.__dict__):
+            print(" .. found a schema for: " +str(self.__class__.__name__))
             self.schema = self.__class__.__dict__["schema"]
         else:
             #print("No schema attribute found for this Model Class")
