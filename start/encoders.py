@@ -1,11 +1,24 @@
 #
 # encoders for various output formats
 # 
-# the dumps() method will be called
-#
 import io
 import csv
+import json
 import dicttoxml
+
+
+class Json():
+    """
+        calls the standard json module.
+        this wrapper just enables us to decide wether or not 
+        to ensure_ascii=True or False.
+    """
+    def __init__(self, ensure_ascii=False):
+        print("  .. Json encoder got: ensure_ascii: " + str(ensure_ascii))
+        self.ensure_ascii = ensure_ascii
+    
+    def dumps(self, data):
+        return json.dumps(data, ensure_ascii=self.ensure_ascii)
 
 class JsonToCsv():
     """ flattens json and converts the flattened

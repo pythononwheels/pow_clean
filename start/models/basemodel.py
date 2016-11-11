@@ -7,21 +7,20 @@ from {{appname}}.powlib import pluralize
 import datetime
 from sqlalchemy import orm
 import sqlalchemy.inspection
-import cerberus
+from cerberus import Validator
 import xmltodict
 import json
+import datetime, decimal
+from {{appname}}.config import myapp
 
-# class PowValidator(cerberus.Validator):
-#     def _validate_sqltype(self, field, value):
-#         """ SQLtypeonly for internal use
-#             and forwarding to SQLAlchemy
-#             THis test is only a pseudofunc to make
-#             cerberus accept the sqlprecision parameter
-
-#         The rule's arguments are validated against this schema:
-#         {'type': 'string'}
+# class MyValidator(Validator):
+#     def _validate_type_default(self, value):
+#         """ Enables validation for `objectid` schema attribute.
+#         :param value: field value.
 #         """
+#         print(" validating: default value: " + str(value))
 #         return True
+
 
 #print ('importing module %s' % __name__)
 class BaseModel():
@@ -46,22 +45,28 @@ class BaseModel():
         # this enables the model to load / dump json
         # 
         #print(kwargs)
-        cls_name = self.__class__.__name__.capitalize()
+        self.class_name = self.__class__.__name__.capitalize()
         from marshmallow_sqlalchemy import ModelSchema
         cls_meta=type("Meta", (object,),{"model" : self.__class__})
-        jschema_class = type(cls_name+'Schema', (ModelSchema,),
+        jschema_class = type(self.class_name+'Schema', (ModelSchema,),
             {"Meta": cls_meta}
             )
         setattr(self, "_jsonify", jschema_class())
         self.session=session
+        self.table = self.metadata.tables[pluralize(self.__class__.__name__.lower())]
+        
         #
         # if there is a schema (cerberus) set it in the instance
         #
-        if (getattr(self, "schema", False)) and ("schema" in self.__class__.__dict__):
+        print(str(self.__class__.__dict__.keys()))
+        if "schema" in self.__class__.__dict__:
+            print(" .. found a schema for: " +str(self.__class__.__name__) + " in class dict")
             self.schema = self.__class__.__dict__["schema"]
-        else:
-            #print("No schema attribute found for this Model Class")
-            self.schema = {}
+        # add the sqlcolumns schema definitions to the cerberus schema (if there are any)
+        if myapp["auto_schema"]:
+            self._setup_schema_from_sql()
+            
+
         #
         # setup values from kwargs or from init_from_<format> if format="someformat"
         #
@@ -78,12 +83,93 @@ class BaseModel():
             for key in kwargs.keys():
                 if key in self.__class__.__dict__:
                     setattr(self, key, kwargs[key])
-        self.table = self.metadata.tables[pluralize(self.__class__.__name__.lower())]
+        
 
     @declared_attr
     def __tablename__(cls):
+        """ returns the tablename for this model """
         return pluralize(cls.__name__.lower())
 
+    def show_api(self):
+        import inspect
+        print(50*"-")
+        print("  external API for " + self.__class__.__name__)
+        print(50*"-")
+        for elem in inspect.getmembers(self, predicate=inspect.ismethod):
+            meth = elem[0]
+
+            if not meth.startswith("_"):
+                print("  .. " + str(elem[0]) , end="")
+                func=getattr(self,elem[0])
+                if func:
+                    print( str(func.__doc__)[0:100])
+                else:
+                    print()
+
+
+    def _setup_schema_from_sql(self):
+        """
+            Constructs a cerberus definition schema 
+            from a given sqlalchemy column definition
+            for this model.
+        """
+        print(" .. setup schema from sql for : " + str(self.class_name))
+        for idx,col in enumerate(self.table.columns.items()):
+            # looks like this: 
+            # ('id', 
+            #  Column('id', Integer(), table=<comments>, primary_key=True, 
+            #     nullable=False))
+            col_type = col[1].type.python_type
+            col_name = str(col[0]).lower()
+            exclude_list = [elem for elem in self.schema.keys()]
+            exclude_list.append( ["id", "created_at", "last_updated"] )
+            #print("    #" + str(idx) + "->" + str(col_name) + " -> " + str(col_type))
+            # dont check internal columns or relation columns.
+            if ( col_name not in exclude_list ) and ( col[1].foreign_keys != set() ): 
+                print("  .. adding to schema: " + col_name)  
+                if col_type == int:
+                    # sqlalchemy: Integer, BigInteger
+                    # cerberus: integer
+                    pass
+                elif col_type == str:
+                    # sqlalchemy: String, Text
+                    # cerberus: string
+                    # python: str
+                    pass
+                elif col_type == bool:
+                    # sqlalchemy: Boolean
+                    # cerberus: boolean
+                    # python: bool
+                    pass
+                elif col_type == datetime.date:
+                    # sqlalchemy: Date
+                    # cerberus: date
+                    # python: datetime.date
+                    pass
+                elif col_type == datetime.datetime:
+                    # sqlalchemy: DateTime
+                    # cerberus: datetime
+                    # python: datetime.datetime
+                    pass
+                elif col_type == float:
+                    # sqlalchemy: Float
+                    # cerberus: float
+                    # python: float
+                    pass
+                elif col_type == decimal.Decimal:
+                    # sqlalchemy: Numeric
+                    # cerberus: number
+                    # python: decimal.Decimal
+                    pass
+                elif col_type == bytes:
+                    # sqlalchemy: LargeBinary
+                    # cerberus: binary
+                    # python: bytes
+                    pass
+            else:
+                print("  .. skipping: " + col_name )
+
+                
     def validate(self):
         """
             checks if the instance has a schema.
@@ -91,16 +177,19 @@ class BaseModel():
         """
         if getattr(self,"schema", False):
             # if instance has a schema. (also see init_on_load)
-            v = cerberus.Validator(self.schema)
+            #v = cerberus.Validator(self.schema)
+            v= MyValidator(self.schema)
             if v.validate(self.dict_dump()):
                 return True
             else:
                 return v
 
-    def init_from_xml(self, data,root="root"):
+    def init_from_xml(self, data, root="root"):
         """
             makes a py dict from input xml and
             sets the instance attributes 
+            root defines the xml root node
+            
         """
         d=xmltodict.parse(data)
         d=d[root]
@@ -126,6 +215,19 @@ class BaseModel():
             if key in self.__class__.__dict__:
                 setattr(self, key, d[key])
 
+    def init_from_csv(self, data):
+        """
+            makes a py dict from input ^csv and
+            sets the instance attributes 
+            csv has the drawback coompared to json (or xml)
+            that the data structure is flat.
+
+            first row must be the "column names"
+        """
+
+
+
+
     def json_dump(self):
         return self._jsonify.dump(self).data
 
@@ -150,7 +252,7 @@ class BaseModel():
 
     def dict_dump(self):
         d = {}
-        exclude_list=["_jsonify","_sa_instance_state", "session", "schema"]
+        exclude_list=["_jsonify","_sa_instance_state", "session", "schema", "table", "tree_parent_id", "tree_children"]
         if getattr(self, "exclude_list", False):
             exclude_list += self.exclude_list
         for elem in vars(self).keys():
