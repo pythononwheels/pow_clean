@@ -10,26 +10,18 @@ import sqlalchemy.inspection
 from cerberus import Validator
 import xmltodict
 import json
-
-class MyValidator(Validator):
-    def _validate_type_default(self, value):
-        """ Enables validation for `objectid` schema attribute.
-        :param value: field value.
-        """
-        print(" validating: default value: " + str(value))
-        return True
+import datetime, decimal
+from {{appname}}.config import myapp
 
 #print ('importing module %s' % __name__)
 class BaseModel():
     
     __table_args__ = { "extend_existing": True }
-    #
-    # setup the default pow column (id, last_update, created_at)
-    #
-    id = Column(Integer, primary_key=True)
+
+    id =  Column(Integer, primary_key=True)
     # create_date column will be populated with the result of the now() SQL function 
-    # (which, depending on backend, compiles into NOW() or CURRENT_TIMESTAMP in most cases
-    #       see: http://docs.sqlalchemy.org/en/latest/core/defaults.html
+    #(which, depending on backend, compiles into NOW() or CURRENT_TIMESTAMP in most cases
+    # see: http://docs.sqlalchemy.org/en/latest/core/defaults.html
     created_at = Column(DateTime, default=func.now())
     last_updated = Column(DateTime, onupdate=datetime.datetime.now, default=func.now())
     session = session
@@ -44,34 +36,27 @@ class BaseModel():
         # this enables the model to load / dump json
         # 
         #print(kwargs)
-        cls_name = self.__class__.__name__.capitalize()
+        self.class_name = self.__class__.__name__.capitalize()
         from marshmallow_sqlalchemy import ModelSchema
         cls_meta=type("Meta", (object,),{"model" : self.__class__})
-        jschema_class = type(cls_name+'Schema', (ModelSchema,),
+        jschema_class = type(self.class_name+'Schema', (ModelSchema,),
             {"Meta": cls_meta}
             )
         setattr(self, "_jsonify", jschema_class())
         self.session=session
         self.table = self.metadata.tables[pluralize(self.__class__.__name__.lower())]
+        
         #
         # if there is a schema (cerberus) set it in the instance
         #
-        if (getattr(self, "schema", False)) and ("schema" in self.__class__.__dict__):
-            print(" .. found a schema for: " +str(self.__class__.__name__))
+        print(str(self.__class__.__dict__.keys()))
+        if "schema" in self.__class__.__dict__:
+            print(" .. found a schema for: " +str(self.__class__.__name__) + " in class dict")
             self.schema = self.__class__.__dict__["schema"]
-        else:
-            #print("No schema attribute found for this Model Class")
-            self.schema = None
-            # 
-            # setup a schema from the columns:
-            #
-            for col in self.table.columns.items():
-                # looks like this: 
-                # ('id', 
-                #  Column('id', Integer(), table=<comments>, primary_key=True, 
-                #     nullable=False))
-                col_type = col[1].type.python_type
-                print(str(col_type))
+        # add the sqlcolumns schema definitions to the cerberus schema (if there are any)
+        if myapp["auto_schema"]:
+            self._setup_schema_from_sql()
+            
 
         #
         # setup values from kwargs or from init_from_<format> if format="someformat"
@@ -83,8 +68,6 @@ class BaseModel():
             f = getattr(self, "init_from_" + kwargs["format"], None)
             if f:
                 f(kwargs)
-            else:
-                raise LookupError(" No Method: init_from_" + str(format) + " found")
         else:
             # initializes the instanmce with the given kwargs values:
             # e.g.: Model(test="sometext", title="sometitle")
@@ -95,8 +78,98 @@ class BaseModel():
 
     @declared_attr
     def __tablename__(cls):
+        """ returns the tablename for this model """
         return pluralize(cls.__name__.lower())
+    
+    def api(self):
+        """ just for conveniance """
+        return self.show_api()
 
+    def show_api(self):
+        """
+            prints the "external API of the class.
+            No under or dunder methods
+            And methods only.
+
+            Uses inspect module.
+        """
+        import inspect
+        print(50*"-")
+        print("  external API for " + self.__class__.__name__)
+        print(50*"-")
+        for elem in inspect.getmembers(self, predicate=inspect.ismethod):
+            meth = elem[0]
+
+            if not meth.startswith("_"):
+                print("  .. " + str(elem[0]) , end="")
+                func=getattr(self,elem[0])
+                if func:
+                    print( str(func.__doc__)[0:100])
+                else:
+                    print()
+
+    def _setup_schema_from_sql(self):
+        """
+            Constructs a cerberus definition schema 
+            from a given sqlalchemy column definition
+            for this model.
+        """
+        print(" .. setup schema from sql for : " + str(self.class_name))
+        for idx,col in enumerate(self.table.columns.items()):
+            # looks like this: 
+            # ('id', 
+            #  Column('id', Integer(), table=<comments>, primary_key=True, 
+            #     nullable=False))
+            col_type = col[1].type.python_type
+            col_name = str(col[0]).lower()
+            exclude_list = [elem for elem in self.schema.keys()]
+            exclude_list.append( ["id", "created_at", "last_updated"] )
+            #print("    #" + str(idx) + "->" + str(col_name) + " -> " + str(col_type))
+            # dont check internal columns or relation columns.
+            if ( col_name not in exclude_list ) and ( col[1].foreign_keys != set() ): 
+                print("  .. adding to schema: " + col_name)  
+                if col_type == int:
+                    # sqlalchemy: Integer, BigInteger
+                    # cerberus: integer
+                    pass
+                elif col_type == str:
+                    # sqlalchemy: String, Text
+                    # cerberus: string
+                    # python: str
+                    pass
+                elif col_type == bool:
+                    # sqlalchemy: Boolean
+                    # cerberus: boolean
+                    # python: bool
+                    pass
+                elif col_type == datetime.date:
+                    # sqlalchemy: Date
+                    # cerberus: date
+                    # python: datetime.date
+                    pass
+                elif col_type == datetime.datetime:
+                    # sqlalchemy: DateTime
+                    # cerberus: datetime
+                    # python: datetime.datetime
+                    pass
+                elif col_type == float:
+                    # sqlalchemy: Float
+                    # cerberus: float
+                    # python: float
+                    pass
+                elif col_type == decimal.Decimal:
+                    # sqlalchemy: Numeric
+                    # cerberus: number
+                    # python: decimal.Decimal
+                    pass
+                elif col_type == bytes:
+                    # sqlalchemy: LargeBinary
+                    # cerberus: binary
+                    # python: bytes
+                    pass
+            else:
+                print("  .. skipping: " + col_name )
+      
     def validate(self):
         """
             checks if the instance has a schema.
@@ -104,16 +177,19 @@ class BaseModel():
         """
         if getattr(self,"schema", False):
             # if instance has a schema. (also see init_on_load)
-            v = cerberus.Validator(self.schema)
+            #v = cerberus.Validator(self.schema)
+            v= MyValidator(self.schema)
             if v.validate(self.dict_dump()):
                 return True
             else:
                 return v
 
-    def init_from_xml(self, data,root="root"):
+    def init_from_xml(self, data, root="root"):
         """
             makes a py dict from input xml and
             sets the instance attributes 
+            root defines the xml root node
+            
         """
         d=xmltodict.parse(data)
         d=d[root]
@@ -139,6 +215,24 @@ class BaseModel():
             if key in self.__class__.__dict__:
                 setattr(self, key, d[key])
 
+    def init_from_csv(self, keys, data):
+        """
+            makes a py dict from input ^csv and
+            sets the instance attributes 
+            csv has the drawback coompared to json (or xml)
+            that the data structure is flat.
+
+            first row must be the "column names"
+        """
+        #assert len(keys) == len(data), raise AssertionError("keys and data must have the same lenght.")
+        if not len(keys) == len(data):
+            raise AssertionError("keys and data must have the same lenght.")
+        for k,d in zip(keys, data):
+            setattr(self, k, d)
+
+
+
+
     def json_dump(self):
         return self._jsonify.dump(self).data
 
@@ -163,7 +257,7 @@ class BaseModel():
 
     def dict_dump(self):
         d = {}
-        exclude_list=["_jsonify","_sa_instance_state", "session", "schema"]
+        exclude_list=["_jsonify","_sa_instance_state", "session", "schema", "table", "tree_parent_id", "tree_children"]
         if getattr(self, "exclude_list", False):
             exclude_list += self.exclude_list
         for elem in vars(self).keys():
@@ -183,7 +277,7 @@ class BaseModel():
             returns a list of the relation names
             see: http://stackoverflow.com/questions/21206818/sqlalchemy-flask-get-relationships-from-a-db-model
         """
-        rels = self.get_relations()
+        rels = sqlalchemy.inspection.inspect(self.__class__).relationships
         return rels.keys()
 
     def print_full(self):
@@ -209,8 +303,8 @@ class BaseModel():
         # __repr__ method is what happens when you look at it with the interactive prompt
         # or (unlikely: use the builtin repr() function)
         # usage: at interactive python prompt
-        #   p=Post()
-        #   p
+        # p=Post()
+        # p
         from pprint import pformat
         d = self.json_dump()
         return pformat(d,indent=+4)
@@ -218,8 +312,11 @@ class BaseModel():
     def __str__(self):
         #
         # The __str__ method is what happens when you print the object
-        #
+        # usage:
+        # p=Post()
+        # print(p)
         return self.__repr__()
+            
             
     def create_table(self):
         """
@@ -233,27 +330,19 @@ class BaseModel():
         """
         self.__table__.drop(bind=engine)
     
-    def upsert(self, session=None, autocommit=True):
+    def upsert(self, session=None):
         if not session:
             session = self.session
         session.add(self)
-        if autocommit:
-            session.commit()        
+        session.commit()        
 
     def get(self, id):
-        """ returns an instance by id """
         return self.query(self.__class__).get(id)
 
-    def raw_from_statement(self, statement):
-        """ executes the given raw sql statement """
+    def from_statement(self, statement):
         return self.query(self.__class__).from_statement(statement)
 
-    def raw_query(self):
-        """ returns a raw sqlalchermy query """
-        return session.query(self.__class__)
-        
     def page(self, *criterion, limit=None, offset=None):
-        """ paginates thru a result set """
         res = session.query(self.__class__).filter(*criterion).limit(limit).offset(offset).all()
         return res
 
@@ -280,13 +369,10 @@ class BaseModel():
             return[x.json_dump() for x in res]
         return res
 
+    def q(self):
+        return session.query(self.__class__)
+
     def find_dynamic(self, filter_condition = [('name', 'eq', 'klaas')]):
-        """
-            construtcs dynamic aueries from lists of search tuples.
-            format: [(attribute, operator, search_value)]
-            example: [('name', 'eq', 'klaas')]
-            => session.query(Model).find(Model.name == "klaas")
-        """
         dynamic_filtered_query_class = DynamicFilter(query=None, model_class=self,
                                   filter_condition=filter_condition)
         dynamic_filtered_query = dynamic_filtered_query_class.return_query()

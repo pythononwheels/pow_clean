@@ -52,7 +52,6 @@ class JsonToCsv():
         writer.writerow(flat_json)
         return output.getvalue()
 
-
 class JsonToXml():
     def dumps(self, data, root="root"):
         """ returns the xml representation of a dict input data
@@ -60,3 +59,6 @@ class JsonToXml():
         #print(data)
         #print(dicttoxml.dicttoxml(data))
         return dicttoxml.dicttoxml(data)
+
+
+

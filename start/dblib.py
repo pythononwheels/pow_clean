@@ -23,6 +23,7 @@ engine = create_engine(conn_str)
 metadata = MetaData(engine)
 
 Session = sessionmaker(bind=engine)
+Transaction = Session
 session = Session()
 
 from sqlalchemy.ext.declarative import declarative_base

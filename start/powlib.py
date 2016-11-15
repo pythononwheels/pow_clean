@@ -29,12 +29,12 @@ def merge_two_dicts(x, y):
 # (pattern, search, replace) regex english plural rules tuple
 # taken from : http://www.daniweb.com/software-development/python/threads/70647
 rule_tuple = (
-    ('[ml]ouse$', '([ml])ouse$', '\\1ice'),
+    ('[ml]ouse$', '([ml])ouse$', '\1ice'),
     ('child$', 'child$', 'children'),
     ('booth$', 'booth$', 'booths'),
     ('foot$', 'foot$', 'feet'),
     ('ooth$', 'ooth$', 'eeth'),
-    ('l[eo]af$', 'l([eo])af$', 'l\\1aves'),
+    ('l[eo]af$', 'l([eo])af$', 'l\1aves'),
     ('sis$', 'sis$', 'ses'),
     ('man$', 'man$', 'men'),
     ('ife$', 'ife$', 'ives'),
@@ -119,11 +119,27 @@ from sqlalchemy.orm import relationship
 class powDecNew():
     def __init__(self):
         self.relations = {}
-    # rel is a plural string of the related model ("adresses", "comments"
+    
     #
-    # the has many magic ;)
+    # below you can find the relation decorators
+    # These types of relations are implementd:
+    #   Functional notion       =>  sqlalchemy documentation notion
+    # --------------------------------------------------------------------
+    #   has_many_and_belongs_to =>  One To Many with backref
+    #   has_many                =>  One To Many (without backref)
+    #   belongs_to              =>  Many To One (without backref)
+    #   one_to_one                 =>  One To One
+    #   many_to_many            =>  Many To Many
+    #   is_tree                 => Adjacence List
     #
-    def has_many(self, child_as_str):
+
+    def has_many_and_belongs_to(self, child_as_str, backref=False):
+       ##
+       #
+       #
+       return has_many( child_as_str, backref=True)
+
+    def has_many(self, child_as_str, backref=False):
         # cls is the class that has many of the related models (e.g. User, Post)
         # the "parent" class
         # rel_as_str is the plueral name of the child class (adresses, comments)
@@ -150,12 +166,69 @@ class powDecNew():
                 order_by=child_klass.id,
                 back_populates=parent_name))
             setattr(child_klass, parent_name + "_id", Column(Integer, ForeignKey(pluralize(parent_name)+".id")))
-            setattr(child_klass, parent_name, relationship(parent_class_name, back_populates=child_as_str))
+            if backref:
+                setattr(child_klass, parent_name, relationship(parent_class_name, back_populates=child_as_str))
             ##print(dir(rel))
-            print(" .. RELATION: I see a: " + parent_class_name + " has many: " + child_as_str)
+            print("RELATION: I see a: " + parent_class_name + " has many: " + child_as_str)
             return parent_class
+        return decorator    
+    
+    def belongs_to(self, parent_as_str):
+        # cls is the class that has many of the related models (e.g. User, Post)
+        # the "parent" class
+        # rel_as_str is the plueral name of the child class (adresses, comments)
+        # klass below is the real class instance of the child
+        def decorator(child_class):
+            child_name = child_class.__name__.lower()
+            
+            parent_class_name = parent_as_str.capitalize()
+            parent_module_name = parent_as_str
+            import sys
+            if ("{{appname}}.models."+parent_module_name) in sys.modules.keys():
+                parent_klass = getattr(sys.modules["{{appname}}.models."+parent_module_name], parent_class_name)
+            else:
+                import importlib
+                mod = importlib.import_module('{{appname}}.models.' + parent_module_name)
+                #mod = __import__('{{appname}}.models.'+rel_module_name, fromlist=[rel_class_name])
+                klass = getattr(mod, parent_class_name)
+            #print("rel_class: " + str(klass))
+            #print(dir(klass))
+            setattr(cls, rel_as_str, relationship(rel_class_name, 
+                order_by=klass.id,
+                back_populates=cls_name))
+            setattr(klass, cls_name + "_id", Column(Integer, ForeignKey(pluralize(cls_name)+".id")))
+            setattr(klass, cls_name, relationship(cls_name.capitalize(), back_populates=rel_as_str))
+            ##print(dir(rel))
+            print("RELATION: I see a: " + cls_name.capitalize() + " has many: " + rel_as_str)
+            return cls
         return decorator
 
+    def one_to_one(self, child_as_str):
+        # cls is parent class (Post)
+        # child_as_str is the singular name of the child (related class)
+        # klass below is the real class instace of the child
+        # one-to-one
+        def decorator(parent):
+            # cls is the parent class of the relation
+            parent_name = parent.__name__.lower()
+            #print("cls_name: " + cls_name)
+            child_class_name = child_as_str.capitalize()
+            child_module_name = child_as_str
+            #print("child_class_name: " + child_class_name)
+            #print("child_module_name: " + child_module_name)
+            mod = __import__('{{appname}}.models.'+child_module_name, fromlist=[child_class_name])
+            klass = getattr(mod, child_class_name)
+            #print("rel_class: " + str(klass))
+            #print(dir(klass))
+            setattr(parent, child_as_str, relationship(child_class_name, 
+                uselist=False,
+                back_populates=parent_name))
+            setattr(klass, parent_name + "_id", Column(Integer, ForeignKey(parent_name+".id")))
+            setattr(klass, parent_name, relationship(parent_name.capitalize(), back_populates=child_as_str))
+            ##print(dir(rel))
+            print("RELATION: I see a: " + parent_name.capitalize() + " has many: " + child_as_str)
+            return parent
+        return decorator
 
     def many_to_many(self, children):
         # cls is the class that has many of the related models (e.g. User, Post)
@@ -201,55 +274,52 @@ class powDecNew():
             setattr(child_klass, pluralize(parent_name), 
                 relationship(parent_class_name, 
                     secondary=assoc_table, back_populates=children ))
-            
-            
-           
             ##print(dir(rel))
-            print(" .. RELATION: I see a: " + parent_class_name + " has many-to-many: " + children)
+            print("RELATION: I see a: " + parent_class_name + " has many-to-many: " + children)
             return parent_class
         return decorator
 
-    #
-    # the has many magic
-    #
-    def belongs_to(self, parent_as_str):
+    def is_tree(self):
         # cls is the class that has many of the related models (e.g. User, Post)
-        # the "parent" class
-        # rel_as_str is the plueral name of the child class (adresses, comments)
         # klass below is the real class instance of the child
-        def decorator(child_class):
-            child_name = child_class.__name__.lower()
-            
-            parent_class_name = parent_as_str.capitalize()
-            parent_module_name = parent_as_str
-            import sys
-            if ("{{appname}}.models."+parent_module_name) in sys.modules.keys():
-                parent_klass = getattr(sys.modules["{{appname}}.models."+parent_module_name], parent_class_name)
-            else:
-                import importlib
-                mod = importlib.import_module('{{appname}}.models.' + parent_module_name)
-                #mod = __import__('{{appname}}.models.'+rel_module_name, fromlist=[rel_class_name])
-                klass = getattr(mod, parent_class_name)
-            #print("rel_class: " + str(klass))
-            #print(dir(klass))
-            setattr(cls, rel_as_str, relationship(rel_class_name, 
-                order_by=klass.id,
-                back_populates=cls_name))
-            setattr(klass, cls_name + "_id", Column(Integer, ForeignKey(pluralize(cls_name)+".id")))
-            setattr(klass, cls_name, relationship(cls_name.capitalize(), back_populates=rel_as_str))
+        def decorator(cls):
+            # parent is the parent class of the relation
+            cls_name = cls.__name__.lower()
+            #print(cls_name)
+            setattr(cls, "tree_parent_id", Column(Integer, ForeignKey(pluralize(cls_name)+".id")))
+            setattr(cls, "tree_children", relationship(cls_name.capitalize()))
             ##print(dir(rel))
-            print(" .. RELATION: I see a: " + cls_name.capitalize() + " has many: " + rel_as_str)
+            print("RELATION: I see a tree: " + cls_name.capitalize() )
             return cls
         return decorator
-    #
-    # A one to many relationship places a foreign key on the child table 
-    # referencing the parent. 
-    # relationship() is then specified on the parent, as 
-    # referencing a collection of items represented by the child:
-    #
-    # usage: @relationparent
-    def one_to_many(self, child_as_str):
-        # cls is the class that has many of the related models (e.g. User, Post)
+
+    def _many_to_one(self, child_as_str, backref=False):
+        # parent is the class that has many of the related models (e.g. User, Post)
+        # klass below is the real class instance of the child
+        def decorator(parent):
+            # parent is the parent class of the relation
+            parent_name = parent.__name__.lower()
+            #print("parent_name: " + parent_name)
+            child_class_name = singularize(child_as_str).capitalize()
+            child_module_name = singularize(child_as_str)
+            child_table_name = child_class_name.lower()
+            #print("child_class_name: " + child_class_name)
+            #print("child_module_name: " + child_module_name)
+            mod = __import__('{{appname}}.models.'+child_module_name, fromlist=[child_class_name])
+            klass = getattr(mod, child_class_name)
+            #print("rel_class: " + str(klass))
+            #print(dir(klass))
+            setattr(parent, child_table_name + "_id", Column(Integer, ForeignKey(child_table_name + '.id')))
+            setattr(parent, child_table_name, relationship(child_class_name))
+            if backref:
+                setattr(klass, pluralize(parent_name), relationship(parent.__name__, back_populates=child_class_name))
+            ##print(dir(rel))
+            print("RELATION: I see a: " + parent_name.capitalize() + " many to one: " + child_as_str)
+            return parent
+        return decorator
+
+    def _one_to_many(self, child_as_str):
+        # parent is the class that has many of the related models (e.g. User, Post)
         # klass below is the real class instance of the child
         def decorator(parent):
             # parent is the parent class of the relation
@@ -266,137 +336,78 @@ class powDecNew():
             setattr(parent, child_as_str, relationship(child_class_name))
             setattr(klass, parent_name + "_id", Column(Integer, ForeignKey(pluralize(parent_name)+".id")))
             ##print(dir(rel))
-            print(" .. RELATION: I see a: " + parent_name.capitalize() + " has many: " + child_as_str)
+            print("RELATION: I see a: " + parent_name.capitalize() + " has many: " + child_as_str)
             return parent
         return decorator
-
-    #
-    # One To One is essentially a bidirectional relationship with a scalar 
-    # attribute on both sides. To achieve this, the uselist flag indicates 
-    # the placement of a scalar attribute instead of a collection on 
-    # the “many” side of the relationship. 
-    #
-    def one_to_one(self, child_as_str):
-        # cls is parent class (Post)
-        # child_as_str is the singular name of the child (related class)
-        # klass below is the real class instace of the child
-        # one-to-one
-        def decorator(parent):
-            # cls is the parent class of the relation
-            parent_name = parent.__name__.lower()
-            #print("cls_name: " + cls_name)
-            child_class_name = child_as_str.capitalize()
-            child_module_name = child_as_str
-            #print("child_class_name: " + child_class_name)
-            #print("child_module_name: " + child_module_name)
-            mod = __import__('{{appname}}.models.'+child_module_name, fromlist=[child_class_name])
-            klass = getattr(mod, child_class_name)
-            #print("rel_class: " + str(klass))
-            #print(dir(klass))
-            setattr(parent, child_as_str, relationship(child_class_name, 
-                uselist=False,
-                back_populates=parent_name))
-            setattr(klass, parent_name + "_id", Column(Integer, ForeignKey(parent_name+".id")))
-            setattr(klass, parent_name, relationship(parent_name.capitalize(), back_populates=child_as_str))
-            ##print(dir(rel))
-            print(" .. RELATION: I see a: " + parent_name.capitalize() + " has many: " + child_as_str)
-            return parent
-        return decorator
-    #
-    # tree / adjacence lists.
-    # see: http://docs.sqlalchemy.org/en/latest/orm/self_referential.html
-    #
-    def tree(self):
-        # cls is the class that will be enabled as a tree
-        # so cls can have many cls children ... and the childrens have a parent of type cls
-        # 
-        def decorator(cls):
-            # parent is the parent class of the relation
-            cls_name = cls.__name__.lower()
-            #print(cls_name)
-            setattr(cls, "parent_id", Column(Integer, ForeignKey(pluralize(cls_name)+".id")))
-            setattr(cls, "children", relationship(cls_name.capitalize()))
-            ##print(dir(rel))
-            print(" .. RELATION: I see a tree: " + cls_name.capitalize() )
-            return cls
-        return decorator
-
-
-   
-
-    def setup_cerberus_schema(self,what=""):
-        #
-        # setup a cerberus schema from a sqlalchemy column definition
-        #
-        def decorator(cls):
-            print(" .. setup_cerberus_schema:" + cls.__name__.lower())
-            
-            for elem in cls..keys():
-                # now set the right schema keys and types type for the column
-
-            
-            return cls
-        return decorator
-
-
-
     #
     # sets up a sqlqlchemy schema from a cerberus schema dict
     # goal is to go seamlessly to NoSql AND to bring validation in
     # the schema definition at once!
     # ONE definition for SQL, NoSQL and Validation.
     # 
-    def setup_sql_schema(self, what=""):
+    def setup_schema(self, what=""):
         def decorator(cls):
-            print(" .. setup_sql_schema:" + cls.__name__.lower())
-            #print("what: " + what)
-            #print("schema is: " + str(cls.schema))
+            print("setup_schema:" + cls.__name__.lower())
             #
             # create a sqlalchemy model from the schema
             #
+            # there are two special keys you can use additionally to the
+            # standard cerberus syntx:
+            # "sql" :   add any Column __init__ kwargs here, they will be handed raw
+            #           to the Column __init__
+            # "sqltype":    specify a more precise SQL subtype.
+            #               e.g. cerberus has integer. SQL has INTEGER, BIGINTEGER
+            # the two special keys will be removed from the schema at the end of this
+            # decorator.
+            #    
             colclass = None
             
+
             #
             # now set the right sqlalchemy type for the column
             #
             for elem in cls.schema.keys():
                 #print(elem)
+                # the raw Column __init__ parameters dict
+                sql=cls.schema[elem].get("sql", {})
                 if cls.schema[elem]["type"] == "integer":
                     if "sqltype" in cls.schema[elem]:
                         if cls.schema[elem]["sqltype"].lower() == "biginteger":
-                            setattr(cls, elem, Column(elem, BigInteger))
+                            setattr(cls, elem, Column(elem, BigInteger, **sql))
                     else:
-                        setattr(cls, elem, Column(elem, Integer))
+                        setattr(cls, elem, Column(elem, Integer, **sql))
                 elif cls.schema[elem]["type"] == "float":
-                    setattr(cls, elem, Column(elem, Float))
+                    setattr(cls, elem, Column(elem, Float, **sql))
                 elif cls.schema[elem]["type"] == "string":
                     if "sqltype" in cls.schema[elem]:
                         if cls.schema[elem]["sqltype"].lower() == "text":
-                                setattr(cls, elem, Column(elem, Text))
+                                setattr(cls, elem, Column(elem, Text, **sql))
                         elif cls.schema[elem]["sqltype"].lower() == "unicode":
                             if "maxlength" in cls.schema[elem]:
-                                setattr(cls, elem, Column(elem, Unicode(length=cls.schema[elem]["maxlength"])))
+                                setattr(cls, elem, Column(elem, Unicode(length=cls.schema[elem]["maxlength"]), **sql))
                             else:
-                                setattr(cls, elem, Column(elem, Unicode))
+                                setattr(cls, elem, Column(elem, Unicode, **sql))
                     else:    
                         if "maxlength" in cls.schema[elem]:
-                            setattr(cls, elem, Column(elem, String(length=cls.schema[elem]["maxlength"])))
+                            setattr(cls, elem, Column(elem, String(length=cls.schema[elem]["maxlength"]), **sql))
                         else:
-                            setattr(cls, elem, Column(elem, String))
+                            setattr(cls, elem, Column(elem, String, **sql))
                 elif cls.schema[elem]["type"] == "bool":
-                    setattr(cls, elem, Column(elem, Boolean))
+                    setattr(cls, elem, Column(elem, Boolean, **sql))
                 elif cls.schema[elem]["type"] == "date":
-                    setattr(cls, elem, Column(elem, Date))
+                    setattr(cls, elem, Column(elem, Date, **sql))
                 elif cls.schema[elem]["type"] == "datetime":
-                    setattr(cls, elem, Column(elem, DateTime))
+                    setattr(cls, elem, Column(elem, DateTime, **sql))
                 elif cls.schema[elem]["type"] == "number":
-                    setattr(cls, elem, Column(elem, Numeric))
+                    setattr(cls, elem, Column(elem, Numeric, **sql))
                 else:
                     raise Exception("Wrong Datatype in schema") 
-            
+                print("  .. removing the schema (raw) sql key")
+                cls.schema.pop("sql", None)
+                cls.schema.pop("sqltype", None)
+
             return cls
         return decorator
-
 
 relation = powDecNew()
 
