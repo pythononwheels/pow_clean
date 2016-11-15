@@ -13,21 +13,25 @@ class DashboardHandler(BaseHandler):
         self.render("dash.tmpl")
 
 @app.add_route("/thanks/*")
+# if you specify a method, this method will be called for this route
+@app.add_route("/thanks/([0-9]+)*", method="testme")
 class ThanksHandler(BaseHandler):
     def get(self):
         self.render("thanks.tmpl")
-
-@app.add_route("/index/*", pos=-1)
-@app.add_route("/", pos=-2)
+        
+    def testme(self,index=0 ):
+        print("  .. in testme: index = " + str(index))
+        self.render("thanks.tmpl", index=index)
+    
+# if you DON't specify a method, the standard HTTP verb method (e.g. get(), put() will be called)
+@app.add_route("/index/([0-9]+)*")
+@app.add_route("/", pos=-9)
 class IndexdHandler(BaseHandler):
-    def get(self):
+    def get(self, index=None):
+        print("  index:" + str(index))
         self.render("index.tmpl")
 
-@app.add_route(".*", pos=-3)
+@app.add_route(".*", pos=-10)
 class ErrorHandler(BaseHandler):
     def get(self):
         return self.render("404.tmpl", url=self.request.uri)
-
-
-
-

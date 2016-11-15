@@ -29,12 +29,12 @@ def merge_two_dicts(x, y):
 # (pattern, search, replace) regex english plural rules tuple
 # taken from : http://www.daniweb.com/software-development/python/threads/70647
 rule_tuple = (
-    ('[ml]ouse$', '([ml])ouse$', '\1ice'),
+    ('[ml]ouse$', '([ml])ouse$', 'ice'),
     ('child$', 'child$', 'children'),
     ('booth$', 'booth$', 'booths'),
     ('foot$', 'foot$', 'feet'),
     ('ooth$', 'ooth$', 'eeth'),
-    ('l[eo]af$', 'l([eo])af$', 'l\1aves'),
+    ('l[eo]af$', 'l([eo])af$', 'laves'),
     ('sis$', 'sis$', 'ses'),
     ('man$', 'man$', 'men'),
     ('ife$', 'ife$', 'ives'),

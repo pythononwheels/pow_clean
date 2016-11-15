@@ -31,18 +31,19 @@ myapp = {
     "supported_formats" :   ["json", "csv", "xml"],
     "base_url"          :   "https://localhost",
     "encoder"           :   {
-            "json"  :   json,
+            "json"  :   {{appname}}.encoders.Json(ensure_ascii=False),
             "csv"   :   {{appname}}.encoders.JsonToCsv(),
             "xml"   :   {{appname}}.encoders.JsonToXml()
     },
     "page_size"         : 10,
-    "enable_authentication"     :   False   # False, simple or custom
+    "enable_authentication"     :   False,   # False, simple or custom
+    "auto_schema"   :   True
 }
 
 
 database = {
     "type"      :   "sqlite",
-    "dbname"    :   r"{{sqlite_path}}",
+    "dbname"    :   r"sql.db",   # better leave the r to enable absolute paths with backslashes 
     "host"      :   None,       
     "port"      :   None,   
     "user"      :   None,

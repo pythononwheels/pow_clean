@@ -8,6 +8,7 @@ from {{appname}}.dblib import engine
 from alembic.config import Config
 from alembic import command
 import argparse
+import logging
 
 #
 # this will execute 
@@ -53,15 +54,22 @@ if __name__ == "__main__":
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=sa_exc.SAWarning)
+
         alembic_cfg = Config(os.path.join(os.path.dirname(__file__), "alembic.ini"))
         
         # show the current version
         if args.current:
-            command.current(alembic_cfg, verbose=False)
+            print(50*"-")
+            print("current version: ")
+            print(50*"-")
+            command.current(alembic_cfg, verbose=True)
             sys.exit()
 
         # show all changes
         if args.history:
+            print(50*"-")
+            print("revision history: ")
+            print(50*"-")
             command.history(alembic_cfg, rev_range=None, verbose=False)
             sys.exit()
 

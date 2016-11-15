@@ -8,11 +8,12 @@ import sys
 
 from {{appname}}.config import server_settings as app_settings
 from {{appname}}.powlib import merge_two_dicts
-from {{appname}}.dblib import Base, session, engine
+from {{appname}}.dblib import Base, Session, engine
 
 from {{appname}}.config import routes
 from tornado.log import access_log
-import Datetime
+import logging
+import datetime
 
 class Application(tornado.web.Application):
     #
@@ -50,26 +51,26 @@ class Application(tornado.web.Application):
             Base=Base
         ) , app_settings)
         super(Application, self).__init__(self.handlers, **settings)
-        self.session = session
+        self.Session = Session
         self.engine = engine
         self.Base = Base
 
-    @classmethod
-    def log(self, message="", mode=logging.INFO):
-        """ 
-            custom log method
-            access_log is importef from tornado.log (http://www.tornadoweb.org/en/stable/_modules/tornado/log.html)
-            access_log = logging.getLogger("tornado.access")
-        """
-        if mode == logging.ERROR:
-             log_method = access_log.error
-        elif:
-            mode == logging.WARNING:
-        else:
-            log_method = access_log.info
-        log_method("%s %s", datetime.datetime.now().isoformat(), message)
+    # @classmethod
+    # def log(self, message="", mode=logging.INFO):
+    #     """ 
+    #         custom log method
+    #         access_log is importef from tornado.log (http://www.tornadoweb.org/en/stable/_modules/tornado/log.html)
+    #         access_log = logging.getLogger("tornado.access")
+    #     """
+    #     if mode == logging.ERROR:
+    #          log_method = access_log.error
+    #     elif mode == logging.WARNING:
+    #         log_method = access_log.warning
+    #     else:
+    #         log_method = access_log.info
+    #     log_method("%s %s", datetime.datetime.now().isoformat(), message)
 
-    def log_request(self, handler):
+    def log_request(self, handler, message=None):
         """ 
             custom log method
             access_log is importef from tornado.log (http://www.tornadoweb.org/en/stable/_modules/tornado/log.html)
@@ -89,7 +90,10 @@ class Application(tornado.web.Application):
         #log_method("%d %s %.2fms", handler.get_status(),
         #           handler._request_summary(), request_time)
         log_method("%s %d %s %.2fms", handler.request.remote_ip, handler.get_status(),
-                   handler._request_summary(), request_time)
+                handler._request_summary(), request_time)
+        if message:
+            log_method("%s %d %s", handler.request.remote_ip, handler.get_status(), str(message))
+
     
     def import_all_handlers(self):
         """
@@ -202,10 +206,10 @@ class Application(tornado.web.Application):
         return decorator
 
     #
-    # the RESTful route decorator
+    # the direct route decorator
     #
     #todo
-    def add_route(self, route, pos=0):
+    def add_route(self, route, method=None, verbs=["get"], pos=0):
         """
             cls is the class that will get the given route / API route
             cls is automatically the decorated class
@@ -215,17 +219,18 @@ class Application(tornado.web.Application):
         def decorator(cls):
             # parent is the parent class of the relation
             cls_name = cls.__name__.lower()
-            #print("added the following routes: " + r)
             handlers=getattr(self.__class__, "handlers", None)
             handlers_tmp=getattr(self.__class__, "handlers_tmp", None)
-            handlers_tmp.append(((route,cls),pos))
+            route_tupel= (route,cls, {"method":method, "verbs" : verbs})
+            handlers_tmp.append((route_tupel,pos))
+            #print("added the following routes: " + route_tupel)
             if pos < 0:
                 if pos == -1:
-                    handlers.append((route,cls))
+                    handlers.append(route_tupel)
                 else:
-                    handlers.insert(len(handlers)-(pos+1),(route,cls))
+                    handlers.insert(len(handlers)-(pos+1),route_tupel)
             elif pos >= 0:
-                handlers.insert(pos,(route,cls))
+                handlers.insert(pos,route_tupel)
             
             #print("handlers: " + str(self.handlers))
             print("ROUTING: added route for: " + cls.__name__ +  ": " + route)
