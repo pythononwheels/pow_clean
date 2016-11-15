@@ -2,7 +2,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, Float
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.sql.expression import func 
-from {{appname}}.dblib import engine,session
+from {{appname}}.sqldblib import engine,session
 from {{appname}}.powlib import pluralize
 import datetime
 from sqlalchemy import orm
@@ -14,9 +14,9 @@ import datetime, decimal
 from {{appname}}.config import myapp
 
 #print ('importing module %s' % __name__)
-class BaseModel():
+class SqlBaseModel():
     
-    __table_args__ = { "extend_existing": True }
+    #__table_args__ = { "extend_existing": True }
 
     id =  Column(Integer, primary_key=True)
     # create_date column will be populated with the result of the now() SQL function 
@@ -49,7 +49,7 @@ class BaseModel():
         #
         # if there is a schema (cerberus) set it in the instance
         #
-        print(str(self.__class__.__dict__.keys()))
+        #print(str(self.__class__.__dict__.keys()))
         if "schema" in self.__class__.__dict__:
             print(" .. found a schema for: " +str(self.__class__.__name__) + " in class dict")
             self.schema = self.__class__.__dict__["schema"]
@@ -60,6 +60,8 @@ class BaseModel():
 
         #
         # setup values from kwargs or from init_from_<format> if format="someformat"
+        # example: m = Model( data = { 'test' : 1 }, format="json")
+        # will call m.init_from_json(data)
         #
         if "format" in kwargs:
             # set the format and call the according init_from_<format> method
@@ -178,7 +180,7 @@ class BaseModel():
         if getattr(self,"schema", False):
             # if instance has a schema. (also see init_on_load)
             #v = cerberus.Validator(self.schema)
-            v= MyValidator(self.schema)
+            v = Validator(self.schema)
             if v.validate(self.dict_dump()):
                 return True
             else:

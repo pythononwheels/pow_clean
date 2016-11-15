@@ -2,29 +2,42 @@
 # Model {{model_class_name}}
 #
 from sqlalchemy import Column, Integer, String, Boolean, Sequence
-from sqlalchemy import BigInteger, Date, DateTime, Float, Numeric
+from sqlalchemy import BigInteger, Date, DateTime, Float, Numeric, Unicode, Text
 from {{appname}}.powlib import relation
-from {{appname}}.dblib import Base 
+from {{appname}}.sqldblib import Base 
 
 #@relation.has_many("<plural_other_models>")
-#@relation.setup_schema()
+@relation.setup_schema()
 class {{model_class_name}}(Base):
     #
-    # column definitions: sqlalchemy classic style
+    # You can use column definitions in sqlalchemy classic style
     # which offer you all sqlalchemy options
     #
     #title = Column(String(50))
     #text = Column(String)
     
     #
-    # or the new (cerberus) schema style 
-    # which offer you immediate validation 
+    # Or use the new preferred cerberus schema style 
+    # which offer you immediate validation with cerberus
+    # with the special "sql" key you can hand Over
+    # raw sqlalchemy column __init__ parameters.
     #
     schema = {
-        # string sqltypes can be TEXT or UNICODE or nothing
+        'text': {'type': 'string'},
         'name': {'type': 'string', 'maxlength' : 35},
-        'text': {'type': 'string'}
+        'last': {
+            'type': 'number',
+             "sql" : {          # this is just an example
+                "primary_key"   : False,
+                "default"       : "123",
+                "unique"        : True, 
+                "nullable"      : False 
+            }
+        }
     }
+
+
+    #__table_args__ = { "extend_existing": True }
 
     # init
     def __init__(self, **kwargs):

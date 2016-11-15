@@ -23,7 +23,7 @@ fileConfig(config.config_file_name)
 # to the declarative schema
 # 
 import os
-exclude_list=["basemodel", "test", "subtest"]
+exclude_list=["basemodel", "elastic", "tinydb"]
 #
 # the list of modules (excluding _ones and basemodel. Add more you dont want
 # to be loaded or inspected to exclude_list above.)
@@ -84,6 +84,7 @@ def run_migrations_offline():
 
     """
     url = config.get_main_option("sqlalchemy.url")
+    print("SQLAlchemy URL: " + str(url))
     context.configure(
         url=url, target_metadata=target_metadata, literal_binds=True)
 

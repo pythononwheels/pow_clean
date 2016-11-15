@@ -2,7 +2,7 @@
 #
 # pow settings file
 # 
-import json
+import simplejson as json
 import {{appname}}.encoders
 import os
 
@@ -31,7 +31,7 @@ myapp = {
     "supported_formats" :   ["json", "csv", "xml"],
     "base_url"          :   "https://localhost",
     "encoder"           :   {
-            "json"  :   {{appname}}.encoders.Json(ensure_ascii=False),
+            "json"  :   json,
             "csv"   :   {{appname}}.encoders.JsonToCsv(),
             "xml"   :   {{appname}}.encoders.JsonToXml()
     },
@@ -42,12 +42,14 @@ myapp = {
 
 
 database = {
-    "type"      :   "sqlite",
-    "dbname"    :   r"sql.db",   # better leave the r to enable absolute paths with backslashes 
-    "host"      :   None,       
-    "port"      :   None,   
-    "user"      :   None,
-    "passwd"    :   None
+    "sql"   : {
+        "type"      :   "sqlite",
+        "dbname"    :   r"sql.db",   # better leave the r to enable absolute paths with backslashes 
+        "host"      :   None,       
+        "port"      :   None,   
+        "user"      :   None,
+        "passwd"    :   None
+    }
 }
 
 #from handlers.very_raw_own_handler import VeryRawOwnHandler

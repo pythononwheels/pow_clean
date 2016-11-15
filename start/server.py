@@ -33,7 +33,7 @@ if __name__ == "__main__":
     print("starting the pow server Server ")
     print(50*"-")
     print("visit: https://localhost:" + str(app_settings["port"]))
-    print("  DB: " + str(app.settings["db"]))
+    print("  DB: " + str(app.settings["sqldb"]))
     #app.listen(app_settings["port"], **server_settings)#
     #app=Application()
     #print(app)

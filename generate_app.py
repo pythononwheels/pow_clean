@@ -54,7 +54,7 @@ def generate_app(appname, force=False):
     
     os.makedirs(outdir, exist_ok=True)
     template_exts = [".py", ".tmpl"]
-    exclude_dirs = ["static", "stubs", "views"]
+    exclude_dirs = ["static", "stubs", "views", "stuff"]
 
     #
     # walk the root (/pow/start)

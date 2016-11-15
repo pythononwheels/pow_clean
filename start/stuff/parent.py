@@ -2,7 +2,7 @@
 # Model
 #
 from {{appname}}.powlib import relation
-from {{appname}}.dblib import Base 
+from {{appname}}.sqldblib import Base 
 
 #@relation.has_many('childs')
 @relation.setup_sql_schema()

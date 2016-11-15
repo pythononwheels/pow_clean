@@ -4,7 +4,7 @@
 from sqlalchemy import Column, Integer, String, Boolean, Sequence
 from sqlalchemy import BigInteger, Date, DateTime, Float, Numeric
 from pow_comments.powlib import relation
-from pow_comments.dblib import Base 
+from pow_comments.sqldblib import Base 
 
 #@relation.has_many("<plural_other_models>")
 @relation.is_tree()

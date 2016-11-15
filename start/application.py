@@ -8,7 +8,7 @@ import sys
 
 from {{appname}}.config import server_settings as app_settings
 from {{appname}}.powlib import merge_two_dicts
-from {{appname}}.dblib import Base, Session, engine
+from {{appname}}.sqldblib import Base, Session, engine
 
 from {{appname}}.config import routes
 from tornado.log import access_log
@@ -47,28 +47,13 @@ class Application(tornado.web.Application):
         settings = merge_two_dicts( dict(
             template_path=os.path.join(os.path.dirname(__file__), app_settings["template_path"]),
             static_path=os.path.join(os.path.dirname(__file__), app_settings["static_path"]),
-            db=engine,
+            sqldb=engine,
             Base=Base
         ) , app_settings)
         super(Application, self).__init__(self.handlers, **settings)
         self.Session = Session
         self.engine = engine
         self.Base = Base
-
-    # @classmethod
-    # def log(self, message="", mode=logging.INFO):
-    #     """ 
-    #         custom log method
-    #         access_log is importef from tornado.log (http://www.tornadoweb.org/en/stable/_modules/tornado/log.html)
-    #         access_log = logging.getLogger("tornado.access")
-    #     """
-    #     if mode == logging.ERROR:
-    #          log_method = access_log.error
-    #     elif mode == logging.WARNING:
-    #         log_method = access_log.warning
-    #     else:
-    #         log_method = access_log.info
-    #     log_method("%s %s", datetime.datetime.now().isoformat(), message)
 
     def log_request(self, handler, message=None):
         """ 
