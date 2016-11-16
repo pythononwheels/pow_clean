@@ -8,7 +8,7 @@ import sys
 
 from {{appname}}.config import server_settings as app_settings
 from {{appname}}.powlib import merge_two_dicts
-from {{appname}}.sqldblib import Base, Session, engine
+from {{appname}}.database.sqldblib import Base, Session, engine
 
 from {{appname}}.config import routes
 from tornado.log import access_log
@@ -47,8 +47,7 @@ class Application(tornado.web.Application):
         settings = merge_two_dicts( dict(
             template_path=os.path.join(os.path.dirname(__file__), app_settings["template_path"]),
             static_path=os.path.join(os.path.dirname(__file__), app_settings["static_path"]),
-            sqldb=engine,
-            Base=Base
+            sqldb=engine,Base=Base, tinydb=tinydb
         ) , app_settings)
         super(Application, self).__init__(self.handlers, **settings)
         self.Session = Session

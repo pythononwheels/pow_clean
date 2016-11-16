@@ -49,7 +49,16 @@ database = {
         "port"      :   None,   
         "user"      :   None,
         "passwd"    :   None
+    },
+    "tinydb"    : {
+        "type"      :   "tinydb",
+        "dbname"    :   r"sql.db",   # better leave the r to enable absolute paths with backslashes 
+        "host"      :   None,       
+        "port"      :   None,   
+        "user"      :   None,
+        "passwd"    :   None
     }
+
 }
 
 #from handlers.very_raw_own_handler import VeryRawOwnHandler

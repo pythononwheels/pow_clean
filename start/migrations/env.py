@@ -29,7 +29,7 @@ exclude_list=["basemodel", "elastic", "tinydb"]
 # to be loaded or inspected to exclude_list above.)
 #
 mods=[]
-module_path = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'models'))
+module_path = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..', 'models/sql'))
 for mod in os.listdir( module_path ):
     mod = mod.split(".")[0]
     if not mod.startswith("_") and not mod in exclude_list:

@@ -8,28 +8,38 @@ import xmltodict
 import json
 import datetime, decimal
 from {{appname}}.config import myapp
+from {{appname}}.database.tinydblib import tinydb
+from {{appname}}.powlib import merge_two_dicts
 
 #print ('importing module %s' % __name__)
 class TinyBaseModel():
     
-
-    id =  Column(Integer, primary_key=True)
-    created_at = Column(DateTime, default=func.now())
-    last_updated = Column(DateTime, onupdate=datetime.datetime.now, default=func.now())
-    session = session
-
+    basic_schema = {
+        "id"    :   { "type" : "integer" },
+        "created_at"    : { "type" : "datetime" },
+        "last_updated"    : { "type" : "datetime" },
+    }
     
     def init_on_load(self, *args, **kwargs):
  
         self.session=None
         self.tablename = pluralize(self.__class__.__name__.lower())
+        #
+        # all further Db operations will work on the table
+        #
+        self.table = tinydb.table(self.tablename)
         
+
         #
         # if there is a schema (cerberus) set it in the instance
         #
         if "schema" in self.__class__.__dict__:
             print(" .. found a schema for: " +str(self.__class__.__name__) + " in class dict")
-            self.schema = self.__class__.__dict__["schema"]            
+            self.schema = merge_two_dicts(
+                self.__class__.__dict__["schema"],
+                basic_schema)
+            print("  .. Schema is now: " + str(self.schema))
+
 
         #
         # setup values from kwargs or from init_from_<format> if format="someformat"
@@ -171,7 +181,6 @@ class TinyBaseModel():
     def get_relations(self):
         """
             returns a list of the relation names
-            see: http://stackoverflow.com/questions/21206818/sqlalchemy-flask-get-relationships-from-a-db-model
         """
         raise RuntimeError("Method not available for TinyDB Models ")
 
