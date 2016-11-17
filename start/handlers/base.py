@@ -2,7 +2,7 @@ import tornado.web
 import tornado.escape
 import json
 from {{appname}}.config import myapp 
-from {{appname}}.models.user import User
+from {{appname}}.models.sql.user import User
 #
 #
 # Base PoW handler (Controller)

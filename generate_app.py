@@ -35,7 +35,7 @@ def copy_or_pump(src, dest, copy=False, appname=None, sqlite_path=None):
     else:
         # just copy file
         print("    copying to ----->", dest )
-        shutil.copy( src, dest )
+        print("    .. :" + str(shutil.copy( src, dest )))
 
 def generate_app(appname, force=False):
     """ generates a small model with the given modelname

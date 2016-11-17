@@ -2,7 +2,7 @@
 # adapts the alembic migrations ini
 # to changes in the pow db config
 #
-from {{appname}}.sqldblib import conn_str
+from {{appname}}.database.sqldblib import conn_str
 import configparser
 
 #config= configparser.ConfigParser.RawConfigParser()

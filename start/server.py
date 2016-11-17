@@ -10,6 +10,7 @@ import os.path
 import sys
 
 from {{appname}}.config import server_settings as app_settings
+from {{appname}}.config import database as db_settings
 from {{appname}}.powlib import merge_two_dicts
 from {{appname}}.application import Application
 
@@ -33,7 +34,11 @@ if __name__ == "__main__":
     print("starting the pow server Server ")
     print(50*"-")
     print("visit: https://localhost:" + str(app_settings["port"]))
-    print("  DB: " + str(app.settings["sqldb"]))
+    for idx, elem in enumerate(db_settings.keys()):
+        if elem.lower() == "sql":
+            print("  DB #" +str(idx) + ": " + db_settings[elem]["type"])
+        else:
+            print("  DB #" +str(idx) + ": " + elem)
     #app.listen(app_settings["port"], **server_settings)#
     #app=Application()
     #print(app)

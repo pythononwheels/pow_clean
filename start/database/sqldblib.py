@@ -27,7 +27,7 @@ Transaction = Session
 session = Session()
 
 from sqlalchemy.ext.declarative import declarative_base
-from {{appname}}.models.basemodel import SqlBaseModel
+from {{appname}}.models.sql.basemodel import SqlBaseModel
 
 Base = declarative_base(cls=SqlBaseModel, metadata=metadata)
 Base.metadata.bind = engine

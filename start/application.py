@@ -46,8 +46,7 @@ class Application(tornado.web.Application):
         # http://stackoverflow.com/questions/38987/how-to-merge-two-python-dictionaries-in-a-single-expression
         settings = merge_two_dicts( dict(
             template_path=os.path.join(os.path.dirname(__file__), app_settings["template_path"]),
-            static_path=os.path.join(os.path.dirname(__file__), app_settings["static_path"]),
-            sqldb=engine,Base=Base, tinydb=tinydb
+            static_path=os.path.join(os.path.dirname(__file__), app_settings["static_path"])
         ) , app_settings)
         super(Application, self).__init__(self.handlers, **settings)
         self.Session = Session

@@ -10,9 +10,11 @@ import datetime, decimal
 from {{appname}}.config import myapp
 from {{appname}}.database.tinydblib import tinydb
 from {{appname}}.powlib import merge_two_dicts
+from {{appname}}.models.modelobject import ModelObject
+
 
 #print ('importing module %s' % __name__)
-class TinyBaseModel():
+class TinyBaseModel(ModelObject):
     
     basic_schema = {
         "id"    :   { "type" : "integer" },
@@ -60,97 +62,6 @@ class TinyBaseModel():
                 if key in self.__class__.__dict__:
                     setattr(self, key, kwargs[key])
           
-    def api(self):
-        """ just for conveniance """
-        return self.show_api()
-
-    def show_api(self):
-        """
-            prints the "external API of the class.
-            No under or dunder methods
-            And methods only.
-
-            Uses inspect module.
-        """
-        import inspect
-        print(50*"-")
-        print("  external API for " + self.__class__.__name__)
-        print(50*"-")
-        for elem in inspect.getmembers(self, predicate=inspect.ismethod):
-            meth = elem[0]
-
-            if not meth.startswith("_"):
-                print("  .. " + str(elem[0]) , end="")
-                func=getattr(self,elem[0])
-                if func:
-                    print( str(func.__doc__)[0:100])
-                else:
-                    print()
-
-    def validate(self):
-        """
-            checks if the instance has a schema.
-            validatees the current values
-        """
-        if getattr(self,"schema", False):
-            # if instance has a schema. (also see init_on_load)
-            #v = cerberus.Validator(self.schema)
-            v = Validator(self.schema)
-            if v.validate(self.dict_dump()):
-                return True
-            else:
-                return v
-
-    def init_from_xml(self, data, root="root"):
-        """
-            makes a py dict from input xml and
-            sets the instance attributes 
-            root defines the xml root node
-            
-        """
-        d=xmltodict.parse(data)
-        d=d[root]
-        for key in d:
-            print("key: " + key + " : " + str(d[key]) )
-            if isinstance(d[key],dict):
-                print(d[key])
-                for elem in d[key]:
-                    if elem.startswith("#"):
-                        if key in self.__class__.__dict__:
-                            setattr(self, key, d[key][elem])
-            else:
-                if key in self.__class__.__dict__:
-                    setattr(self, key, d[key])
-
-    def init_from_json(self, data):
-        """
-            makes a py dict from input json and
-            sets the instance attributes 
-        """
-        d=json.loads(data)
-        for key in d:
-            if key in self.__class__.__dict__:
-                setattr(self, key, d[key])
-
-    def init_from_csv(self, keys, data):
-        """
-            makes a py dict from input ^csv and
-            sets the instance attributes 
-            csv has the drawback coompared to json (or xml)
-            that the data structure is flat.
-
-            first row must be the "column names"
-        """
-        #assert len(keys) == len(data), raise AssertionError("keys and data must have the same lenght.")
-        if not len(keys) == len(data):
-            raise AssertionError("keys and data must have the same lenght.")
-        for k,d in zip(keys, data):
-            setattr(self, k, d)
-
-    def json_dump(self):
-        """ just dump to json """
-        return json.dump(self)
-
     def json_load_from_db(self, data, keep_id=False):
         #TODO:  refresh the object from db and return json
         pass

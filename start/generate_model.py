@@ -1,5 +1,5 @@
 #
-# generate model
+# generate model script
 #
 
 import argparse
@@ -15,7 +15,7 @@ def camel_case(name):
     """
     return "".join([x.capitalize() for x in name.split("_")])
 
-def generate_model(model_name=None, appname=None):
+def generate_model(model_name=None, model_type=None, appname=None):
     """ generates a small model with the given modelname
         also sets the right db and table settings and further boilerplate configuration.
         Template engine = tornado.templates
@@ -36,7 +36,8 @@ def generate_model(model_name=None, appname=None):
         model_name=model_name, 
         model_name_plural=model_name_plural, 
         model_class_name=model_class_name,
-        appname=appname
+        appname=appname,
+        model_type=model_type
         )
     ofile.write(res)
     ofile.close()
@@ -48,6 +49,9 @@ if __name__ == "__main__":
     parser.add_argument('-n', "--name", action="store", 
                         dest="name", help='-n modelname',
                         required=True)
+    parser.add_argument('-t', "--type", action="store", 
+                        dest="type", help='-n modelname',
+                        default="sql", required=False)
     #
     # db type
     # 
@@ -61,4 +65,4 @@ if __name__ == "__main__":
     print("all args: ", args)
     #print(dir(args))
     #print("pluralized model name: ", pluralize(args.name))
-    generate_model(args.name, appname="{{appname}}")
+    generate_model(args.name, args.type, appname="{{appname}}")

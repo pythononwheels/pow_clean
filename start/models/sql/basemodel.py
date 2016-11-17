@@ -2,7 +2,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, Float
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.sql.expression import func 
-from {{appname}}.sqldblib import engine,session
+from {{appname}}.database.sqldblib import engine,session
 from {{appname}}.powlib import pluralize
 import datetime
 from sqlalchemy import orm

@@ -1,5 +1,5 @@
 from {{appname}}.handlers.base import BaseHandler
-from {{appname}}.models.{{handler_name}} import {{handler_model_class_name}}
+from {{appname}}.models.{{model_type}}.{{handler_name}} import {{handler_model_class_name}}
 from {{appname}}.config import myapp, database
 from {{appname}}.application import app
 import tornado.web

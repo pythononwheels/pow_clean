@@ -3,7 +3,7 @@
 #
 from sqlalchemy import Column, Integer, String, Sequence, Text
 from {{appname}}.powlib import relation
-from {{appname}}.sqldblib import Base 
+from {{appname}}.database.sqldblib import Base 
 
 #@relation.many_to_many("groups")
 class User(Base):
