@@ -31,7 +31,8 @@ def generate_model(model_name=None, model_type=None, appname=None):
     #
     # create the model
     #
-    ofile = open(os.path.join(templates["model_path"], model_name+".py"), "wb")
+    ofilePath = os.path.join(templates["model_path"], model_type)
+    ofile = open(os.path.join(ofilePath, model_name+".py"), "wb")
     res = loader.load("sql_model_template.py").generate( 
         model_name=model_name, 
         model_name_plural=model_name_plural, 

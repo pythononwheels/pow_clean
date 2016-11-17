@@ -10,6 +10,7 @@ import os.path
 import sys
 
 from {{appname}}.config import server_settings as app_settings
+from {{appname}}.config import myapp 
 from {{appname}}.config import database as db_settings
 from {{appname}}.powlib import merge_two_dicts
 from {{appname}}.application import Application
@@ -22,7 +23,7 @@ if __name__ == "__main__":
     #enable_pretty_logging()
     #print(dir(tornado.options.options))
 
-    tornado.options.options.log_file_prefix ='pow.log'
+    tornado.options.options.log_file_prefix = myapp["logfile"]
     tornado.options.options.log_file_num_backups=5
     # size of a single logfile
     tornado.options.options.log_file_max_size = 10 * 1000 * 1000

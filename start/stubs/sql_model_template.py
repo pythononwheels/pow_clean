@@ -4,7 +4,7 @@
 from sqlalchemy import Column, Integer, String, Boolean, Sequence
 from sqlalchemy import BigInteger, Date, DateTime, Float, Numeric, Unicode, Text
 from {{appname}}.powlib import relation
-from {{appname}}.sqldblib import Base 
+from {{appname}}.database.sqldblib import Base 
 
 #@relation.has_many("<plural_other_models>")
 @relation.setup_schema()
@@ -37,7 +37,7 @@ class {{model_class_name}}(Base):
     }
 
 
-    #__table_args__ = { "extend_existing": True }
+    #__table_args__ = { "autoload" : True  }
 
     # init
     def __init__(self, **kwargs):

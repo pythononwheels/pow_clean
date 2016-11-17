@@ -4,7 +4,7 @@
 import os
 import alembic.config
 import sys
-from {{appname}}.sqldblib import engine
+from {{appname}}.database.sqldblib import engine
 from alembic.config import Config
 from alembic import command
 import argparse

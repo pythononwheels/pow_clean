@@ -41,7 +41,7 @@ class_list = []
 # load all the models from their modules (mods)
 import importlib
 for m in mods:
-    mod = importlib.import_module('{{appname}}.models.' + m)
+    mod = importlib.import_module('{{appname}}.models.sql.' + m)
     #model_class_name = m.capitalize()
     model_class_name = get_class_name(m)
     klass = getattr(mod, model_class_name)

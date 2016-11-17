@@ -58,6 +58,7 @@ class Application(tornado.web.Application):
             custom log method
             access_log is importef from tornado.log (http://www.tornadoweb.org/en/stable/_modules/tornado/log.html)
             access_log = logging.getLogger("tornado.access")
+            you can define you own log_function in config.py server_settings
         """
         #super().log_request(handler)
         if "log_function" in self.settings:

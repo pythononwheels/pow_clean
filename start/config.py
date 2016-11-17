@@ -16,7 +16,8 @@ server_settings = {
     "static_path"       :   os.path.join(os.path.dirname(__file__), "static"),
     "login_url"         :   "/login",
     "xsrf_cookies"      :   True,
-    "cookie_secret"     :   "254f2254-6bb0-1312-1104-3a0786ce285e",
+    #"log_function"      :   you can give your own log function here.
+    "cookie_secret"     :   "254f2254-6bb0-1312-1104-3a0786ce285e"
 }
 
 templates = {
@@ -37,7 +38,8 @@ myapp = {
     },
     "page_size"         : 10,
     "enable_authentication"     :   False,   # False, simple or custom
-    "auto_schema"   :   True
+    "auto_schema"   :   True,
+    "logfile"       :   "pow.log"
 }
 
 
