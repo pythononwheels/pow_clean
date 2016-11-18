@@ -14,6 +14,7 @@ from {{appname}}.config import myapp
 from {{appname}}.config import database as db_settings
 from {{appname}}.powlib import merge_two_dicts
 from {{appname}}.application import Application
+import logging
 
 app=Application()
 if __name__ == "__main__":
@@ -27,7 +28,27 @@ if __name__ == "__main__":
     tornado.options.options.log_file_num_backups=5
     # size of a single logfile
     tornado.options.options.log_file_max_size = 10 * 1000 * 1000
+    
     tornado.options.parse_command_line()
+    
+    formatter = myapp["logformat"]
+
+    log_handler = logging.FileHandler(myapp["logfile"])
+    #log_handler.setLevel(db_handler_log_level)
+    log_handler.setFormatter(formatter)
+
+    gen_logger = logging.getLogger("tornado.general")
+    gen_logger.addHandler(log_handler)
+
+    access_logger = logging.getLogger("tornado.access")
+    access_logger.addHandler(log_handler)
+    #print(access_logger.handlers)
+    #for elem in access_logger.handlers:
+    #    print(dir(elem))
+
+
+    app_logger = logging.getLogger("tornado.application")
+    app_logger.addHandler(log_handler)
 
     #app = tornado.web.Application(handlers=routes, **app_settings)
     print()

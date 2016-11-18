@@ -2,8 +2,36 @@ import re
 import os
 from sqlalchemy import Column, Integer, String, Date, DateTime, Float, Unicode, Text, Boolean, Numeric, BigInteger
 from sqlalchemy import Table
+import logging
 
 
+
+def make_logger(name, level, handler, format=None, logfile=None):
+    """
+        get the given logger and configure it 
+        with handler, and format
+
+        loglevels:
+        ------------------------------
+        Level       Numeric value
+        CRITICAL        50
+        ERROR           40
+        WARNING         30
+        INFO            20
+        DEBUG           10
+        NOTSET           0
+    """
+    log_file_name = logfile
+    handler_log_level = logging.INFO
+    logger_log_level = logging.DEBUG
+
+    db_handler = logging.FileHandler(db_log_file_name)
+    db_handler.setLevel(db_handler_log_level)
+
+    db_logger = logging.getLogger('sqlalchemy')
+    db_logger.addHandler(db_handler)
+    db_logger.setLevel(db_logger_log_level)
+    return logger
 
 def get_class_name(name):
     """

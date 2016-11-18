@@ -11,8 +11,11 @@ db_log_file_name = myapp["logfile"]
 db_handler_log_level = logging.INFO
 db_logger_log_level = logging.DEBUG
 
+formatter = myapp["logformat"]
+
 db_handler = logging.FileHandler(db_log_file_name)
 db_handler.setLevel(db_handler_log_level)
+db_handler.setFormatter(formatter)
 
 db_logger = logging.getLogger('sqlalchemy')
 db_logger.addHandler(db_handler)

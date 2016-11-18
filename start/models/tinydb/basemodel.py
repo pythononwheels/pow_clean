@@ -5,13 +5,13 @@ from {{appname}}.powlib import pluralize
 import datetime
 from cerberus import Validator
 import xmltodict
-import json
+import simplejson as json
 import datetime, decimal
 from {{appname}}.config import myapp
 from {{appname}}.database.tinydblib import tinydb
 from {{appname}}.powlib import merge_two_dicts
 from {{appname}}.models.modelobject import ModelObject
-
+import uuid
 
 #print ('importing module %s' % __name__)
 class TinyBaseModel(ModelObject):
@@ -22,8 +22,13 @@ class TinyBaseModel(ModelObject):
         "last_updated"    : { "type" : "datetime" },
     }
     
+
     def init_on_load(self, *args, **kwargs):
- 
+        
+        self.id = uuid.uuid4()
+        self.created_at = datetime.datetime.now()
+        self.last_updated = datetime.datetime.now()
+
         self.session=None
         self.tablename = pluralize(self.__class__.__name__.lower())
         #
@@ -39,7 +44,7 @@ class TinyBaseModel(ModelObject):
             print(" .. found a schema for: " +str(self.__class__.__name__) + " in class dict")
             self.schema = merge_two_dicts(
                 self.__class__.__dict__["schema"],
-                basic_schema)
+                self.__class__.basic_schema)
             print("  .. Schema is now: " + str(self.schema))
 
 
@@ -74,16 +79,6 @@ class TinyBaseModel(ModelObject):
         for col in self.__table__._columns:
             print("{0:30s} {1:20s}".format(str(col), str(col.type)))
             #print(dir(col))
-
-    def dict_dump(self):
-        d = {}
-        exclude_list=["_jsonify","_sa_instance_state", "session", "schema", "table", "tree_parent_id", "tree_children"]
-        if getattr(self, "exclude_list", False):
-            exclude_list += self.exclude_list
-        for elem in vars(self).keys():
-            if not elem in exclude_list:
-                d[elem] = vars(self)[elem]
-        return d
 
     def get_relationships(self):
         """ Method not available for TinyDB Models """
@@ -125,52 +120,105 @@ class TinyBaseModel(ModelObject):
         """
             created the physical table in the DB
         """
-        pass
+        if not self.table:
+            self.table = tinydb.table(self.tablename)
 
     def drop_table(self):
         """
             created the physical table in the DB
         """
-        pass
+        tinydb.purge_table(self.tablename)
     
-    def upsert(self, session=None):
-        """ insert oro update intelligently """
-        pass     
+    def upsert(self):
+        """ insert or update intelligently """
+        if self.get(self.id):
+            # update
+            Q = Query()
+            last_updated = datetime.datetime.now()
+            self.table.update(self.json_dump(),Q.id==id)
+        else:
+            # insert            
+            self.table.insert(self.json_dump())
 
-    def get(self, id):
+    def get_by_id(self, id=None):
         """ return by id """
-        pass
+        if not id:
+            id = self.id
+        Q = Query()
+        res = self.table.search(Q.id == id)
+        return res
+        
 
     def from_statement(self, statement):
         """ Method not available for TinyDB Models """
         raise RuntimeError("Method not available for TinyDB Models ")
 
     def page(self, *criterion, limit=None, offset=None):
-        """ return the next page """
-        pass
+        """ return the next page 
+            contains all elements from offset(first element) -> to limit (last element).
+        """
+        def testfunc(val, start, end ):
+            return start <= val <= end
+        Q = Query()
+        print(str(*criterion))
+        Att = getattr(Q, *crtiterion,)
+        res = self.table.search(Att(testfunc, start, end ))
 
-    def find(self,*criterion):
+    def json_result_to_object(self, res):
+        """
+            creates a list of instances of this model 
+            from a given json resultlist
+        """
+        reslist = []
+        m = self.__class__()
+        for elem in res:
+            m.init_from_json(elem)
+            reslist.append(m)
+        return reslist
+
+    def find(self,*criterion, as_json=False):
         """ Find something given a query or criterion """
-        pass
-    
+        print("  .. find: " + str(*criterion))
+        res = self.table.search(*criterion)
+        if as_json:
+            return res
+        else:
+            reslist = self.json_result_to_object(res)
+            return reslist
+
     def find_all(self, *criterion, raw=False, as_json=False, limit=None, offset=None):
         """ Find something given a query or criterion and parameters """
-        pass
+        return self.table.all()
     
     def find_one(self, *criterion, as_json=False):
         """ find only one result. Raise Excaption if more than one was found"""
-        pass
+        res = self.table.search(*criterion)
+        if as_json:
+            if len(res) == 1:
+                return res[0]
+            else:
+                raise Exception("Find_one with more or less than ONE result")
+        else:
+            reslist = self.json_result_to_object(res)
+            if len(reslist) == 1:
+                return reslist[0]
+            else:
+                raise Exception("Find_one with more or less than ONE result")
 
     def find_first(self, *criterion, as_json=False):
         """ return the first hit, or None"""
-        pass
+        res = self.find(*criterion, as_json)
+        try:
+            return res[0]
+        except Exception as err:
+            raise Exception(err.msg)
 
     def q(self):
         """ return a raw query """
         # for sqlalchemy: return session.query(self.__class__)
         # for elastic: return  Q
         # for tinyDB return Query
-        pass
+        return Query()
         
 
 

@@ -5,6 +5,7 @@
 import simplejson as json
 import {{appname}}.encoders
 import os
+import logging
 
 server_settings = {
     "app_name"          :   "{{appname}}",
@@ -39,7 +40,8 @@ myapp = {
     "page_size"         : 10,
     "enable_authentication"     :   False,   # False, simple or custom
     "auto_schema"   :   True,
-    "logfile"       :   "pow.log"
+    "logfile"       :   "pow.log",
+    "logformat"     :   logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 }
 
 
@@ -54,7 +56,7 @@ database = {
     },
     "tinydb"    : {
         "type"      :   "tinydb",
-        "dbname"    :   r"sql.db",   # better leave the r to enable absolute paths with backslashes 
+        "dbname"    :   r"tiny.db",   # better leave the r to enable absolute paths with backslashes 
         "host"      :   None,       
         "port"      :   None,   
         "user"      :   None,

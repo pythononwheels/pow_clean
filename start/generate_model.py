@@ -33,7 +33,7 @@ def generate_model(model_name=None, model_type=None, appname=None):
     #
     ofilePath = os.path.join(templates["model_path"], model_type)
     ofile = open(os.path.join(ofilePath, model_name+".py"), "wb")
-    res = loader.load("sql_model_template.py").generate( 
+    res = loader.load(model_type + "_model_template.py").generate( 
         model_name=model_name, 
         model_name_plural=model_name_plural, 
         model_class_name=model_class_name,
@@ -52,7 +52,7 @@ if __name__ == "__main__":
                         required=True)
     parser.add_argument('-t', "--type", action="store", 
                         dest="type", help='-n modelname',
-                        default="sql", required=False)
+                        default="sql", required=True)
     #
     # db type
     # 

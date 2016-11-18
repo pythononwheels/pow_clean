@@ -5,11 +5,11 @@ from {{appname}}.powlib import pluralize
 import datetime
 from cerberus import Validator
 import xmltodict
-import json
+import simplejson as json
 import datetime, decimal
 from {{appname}}.config import myapp
 from {{appname}}.powlib import merge_two_dicts
-
+from {{appname}}.encoders import pow_json_serializer
 
 class ModelObject():
     """
@@ -100,7 +100,7 @@ class ModelObject():
             # if instance has a schema. (also see init_on_load)
             #v = cerberus.Validator(self.schema)
             v = Validator(self.schema)
-            if v.validate(self.dict_dump(), raw=False):
+            if v.validate(self.db_dict_dump()):
                 return True
             else:
                 return v
@@ -150,19 +150,40 @@ class ModelObject():
             raise AssertionError("keys and data must have the same lenght.")
         for k,d in zip(keys, data):
             setattr(self, k, d)
+    
+    def json_dumps(self, *args, **kwargs):
+        """ just dump to json formatted string"""
+        return json.dumps(self.db_dict_dump(), *args, default=pow_json_serializer, **kwargs)
 
-    def json_dump(self):
+    def json_dump(self, *args, **kwargs):
         """ just dump to json """
-        return json.dump(self)
+        return json.loads(self.json_dumps(*args, **kwargs))
 
-    def dict_dump(self, raw=True):
+    def db_dict_dump(self, validate=False):
+        """
+            return the attributes defined in the schema 
+            as a dictionary
+            validate if forced.
+        """
+        if validate:
+            ret = self.validate()
+            if ret == True:
+                return self.dict_dump(from_schema=True)
+            else:
+                raise AssertionError("Schema validation failed for model: " + 
+                    self.__class__.__name__ + str(ret))
+        else:
+            return self.dict_dump(from_schema=True)
+            
+
+    def dict_dump(self, from_schema=True):
         """
             return vars / attributes of this instance as dict
             raw = True => all (almost: except for those in exclude_list)
             raw = False => only those defined in schema
         """
         d = {}
-        if raw:
+        if not from_schema:
             # return  "almost all attributes"
             exclude_list=["_jsonify","_sa_instance_state", "session", "schema", "table", "tree_parent_id", "tree_children"]
             if getattr(self, "exclude_list", False):
@@ -173,9 +194,11 @@ class ModelObject():
             return d
         else:
             # return just the attributes that are defined in the schema 
-            for elem in schema.keys():
+            for elem in self.schema.keys():
                 d[elem] = getattr(self,elem, None)
             return d
+        
+
 
     def print_full(self):
         """ Subclasses should overwrite this Method. 
@@ -193,8 +216,8 @@ class ModelObject():
             p
         """
         from pprint import pformat
-        d = self.json_dump()
-        return pformat(d,indent=+4)
+        j = self.json_dump()
+        return pformat(j,indent=+4)
 
     def __str__(self):
         """
@@ -246,7 +269,7 @@ class ModelObject():
         """ insert oro update intelligently """
         raise NotImplementedError("Subclasses should overwrite this Method.")
 
-    def get(self, id):
+    def get_by_id(self, id):
         """ return result by id (only)"""
         raise NotImplementedError("Subclasses should overwrite this Method.")
 

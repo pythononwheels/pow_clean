@@ -6,6 +6,19 @@
 import io
 import csv
 import dicttoxml
+from datetime import datetime
+import uuid
+def pow_json_serializer(obj):
+    """JSON serializer for objects not serializable by default json code"""
+
+    if isinstance(obj, datetime):
+        serial = obj.isoformat()
+        return serial
+    if isinstance(obj, uuid.UUID):
+        return str(obj)
+    # add your own additions below here.
+
+    raise TypeError ("Type not serializable")
 
 class JsonToCsv():
     """ flattens json and converts the flattened

@@ -12,9 +12,10 @@ import xmltodict
 import json
 import datetime, decimal
 from {{appname}}.config import myapp
-
+from {{appname}}.models.modelobject import ModelObject
 #print ('importing module %s' % __name__)
-class SqlBaseModel():
+
+class SqlBaseModel(ModelObject):
     
     #__table_args__ = { "extend_existing": True }
 
@@ -51,7 +52,7 @@ class SqlBaseModel():
         #
         #print(str(self.__class__.__dict__.keys()))
         if "schema" in self.__class__.__dict__:
-            print(" .. found a schema for: " +str(self.__class__.__name__) + " in class dict")
+            #print(" .. found a schema for: " +str(self.__class__.__name__) + " in class dict")
             self.schema = self.__class__.__dict__["schema"]
         # add the sqlcolumns schema definitions to the cerberus schema (if there are any)
         if myapp["auto_schema"]:
@@ -83,40 +84,13 @@ class SqlBaseModel():
         """ returns the tablename for this model """
         return pluralize(cls.__name__.lower())
     
-    def api(self):
-        """ just for conveniance """
-        return self.show_api()
-
-    def show_api(self):
-        """
-            prints the "external API of the class.
-            No under or dunder methods
-            And methods only.
-
-            Uses inspect module.
-        """
-        import inspect
-        print(50*"-")
-        print("  external API for " + self.__class__.__name__)
-        print(50*"-")
-        for elem in inspect.getmembers(self, predicate=inspect.ismethod):
-            meth = elem[0]
-
-            if not meth.startswith("_"):
-                print("  .. " + str(elem[0]) , end="")
-                func=getattr(self,elem[0])
-                if func:
-                    print( str(func.__doc__)[0:100])
-                else:
-                    print()
-
     def _setup_schema_from_sql(self):
         """
             Constructs a cerberus definition schema 
             from a given sqlalchemy column definition
             for this model.
         """
-        print(" .. setup schema from sql for : " + str(self.class_name))
+        #print(" .. setup schema from sql for : " + str(self.class_name))
         for idx,col in enumerate(self.table.columns.items()):
             # looks like this: 
             # ('id', 
@@ -129,7 +103,7 @@ class SqlBaseModel():
             #print("    #" + str(idx) + "->" + str(col_name) + " -> " + str(col_type))
             # dont check internal columns or relation columns.
             if ( col_name not in exclude_list ) and ( col[1].foreign_keys != set() ): 
-                print("  .. adding to schema: " + col_name)  
+                #print("  .. adding to schema: " + col_name)  
                 if col_type == int:
                     # sqlalchemy: Integer, BigInteger
                     # cerberus: integer
@@ -170,74 +144,10 @@ class SqlBaseModel():
                     # python: bytes
                     pass
             else:
-                print("  .. skipping: " + col_name )
+                #print("  .. skipping: " + col_name )
+                pass
       
-    def validate(self):
-        """
-            checks if the instance has a schema.
-            validatees the current values
-        """
-        if getattr(self,"schema", False):
-            # if instance has a schema. (also see init_on_load)
-            #v = cerberus.Validator(self.schema)
-            v = Validator(self.schema)
-            if v.validate(self.dict_dump()):
-                return True
-            else:
-                return v
-
-    def init_from_xml(self, data, root="root"):
-        """
-            makes a py dict from input xml and
-            sets the instance attributes 
-            root defines the xml root node
-            
-        """
-        d=xmltodict.parse(data)
-        d=d[root]
-        for key in d:
-            print("key: " + key + " : " + str(d[key]) )
-            if isinstance(d[key],dict):
-                print(d[key])
-                for elem in d[key]:
-                    if elem.startswith("#"):
-                        if key in self.__class__.__dict__:
-                            setattr(self, key, d[key][elem])
-            else:
-                if key in self.__class__.__dict__:
-                    setattr(self, key, d[key])
-
-    def init_from_json(self, data):
-        """
-            makes a py dict from input json and
-            sets the instance attributes 
-        """
-        d=json.loads(data)
-        for key in d:
-            if key in self.__class__.__dict__:
-                setattr(self, key, d[key])
-
-    def init_from_csv(self, keys, data):
-        """
-            makes a py dict from input ^csv and
-            sets the instance attributes 
-            csv has the drawback coompared to json (or xml)
-            that the data structure is flat.
-
-            first row must be the "column names"
-        """
-        #assert len(keys) == len(data), raise AssertionError("keys and data must have the same lenght.")
-        if not len(keys) == len(data):
-            raise AssertionError("keys and data must have the same lenght.")
-        for k,d in zip(keys, data):
-            setattr(self, k, d)
-
-
-
-
-    def json_dump(self):
-        return self._jsonify.dump(self).data
-
+   
     def json_load_from_db(self, data, keep_id=False):
         if keep_id:
             self = self._jsonify.load(data, session=session).data
@@ -247,25 +157,6 @@ class SqlBaseModel():
             obj = obj._jsonify.load(data, session=session).data
             obj.id = None
             return obj
-
-    def print_schema(self):
-        print(50*"-")
-        print("Schema for: " + str(self.__class__))
-        print("{0:30s} {1:20s}".format("Column", "Type"))
-        print(50*"-")
-        for col in self.__table__._columns:
-            print("{0:30s} {1:20s}".format(str(col), str(col.type)))
-            #print(dir(col))
-
-    def dict_dump(self):
-        d = {}
-        exclude_list=["_jsonify","_sa_instance_state", "session", "schema", "table", "tree_parent_id", "tree_children"]
-        if getattr(self, "exclude_list", False):
-            exclude_list += self.exclude_list
-        for elem in vars(self).keys():
-            if not elem in exclude_list:
-                d[elem] = vars(self)[elem]
-        return d
 
     def get_relationships(self):
         """
@@ -299,25 +190,6 @@ class SqlBaseModel():
             d[elem] = str(getattr(self, elem))
 
         return pformat(d,indent=4)
-
-    def __repr__(self):
-        #
-        # __repr__ method is what happens when you look at it with the interactive prompt
-        # or (unlikely: use the builtin repr() function)
-        # usage: at interactive python prompt
-        # p=Post()
-        # p
-        from pprint import pformat
-        d = self.json_dump()
-        return pformat(d,indent=+4)
-
-    def __str__(self):
-        #
-        # The __str__ method is what happens when you print the object
-        # usage:
-        # p=Post()
-        # print(p)
-        return self.__repr__()
             
             
     def create_table(self):
@@ -338,7 +210,7 @@ class SqlBaseModel():
         session.add(self)
         session.commit()        
 
-    def get(self, id):
+    def get_by_id(self, id):
         return self.query(self.__class__).get(id)
 
     def from_statement(self, statement):
