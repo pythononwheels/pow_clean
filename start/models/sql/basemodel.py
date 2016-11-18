@@ -99,54 +99,64 @@ class SqlBaseModel(ModelObject):
             col_type = col[1].type.python_type
             col_name = str(col[0]).lower()
             exclude_list = [elem for elem in self.schema.keys()]
-            exclude_list.append( ["id", "created_at", "last_updated"] )
+            #exclude_list.append( ["id", "created_at", "last_updated"] )
             #print("    #" + str(idx) + "->" + str(col_name) + " -> " + str(col_type))
             # dont check internal columns or relation columns.
-            if ( col_name not in exclude_list ) and ( col[1].foreign_keys != set() ): 
+            print(str(col[1].foreign_keys))
+            # col[0] is the column name
+            # col[1] is the sqlalchemy.Column object
+            if ( col_name not in exclude_list ) and ( len(col[1].foreign_keys) == 0 ): 
                 #print("  .. adding to schema: " + col_name)  
                 if col_type == int:
                     # sqlalchemy: Integer, BigInteger
                     # cerberus: integer
-                    pass
+                    self.schema[col_name] = { "type" : "integer" }
                 elif col_type == str:
                     # sqlalchemy: String, Text
                     # cerberus: string
                     # python: str
-                    pass
+                    self.schema[col_name] = { "type" : "string" }
                 elif col_type == bool:
                     # sqlalchemy: Boolean
                     # cerberus: boolean
                     # python: bool
-                    pass
+                    self.schema[col_name] = { "type" : "boolean" }
                 elif col_type == datetime.date:
                     # sqlalchemy: Date
                     # cerberus: date
                     # python: datetime.date
-                    pass
+                    self.schema[col_name] = { "type" : "datetime.date" }
                 elif col_type == datetime.datetime:
                     # sqlalchemy: DateTime
                     # cerberus: datetime
                     # python: datetime.datetime
-                    pass
+                    self.schema[col_name] = { "type" : "datetime.datetime" }
                 elif col_type == float:
                     # sqlalchemy: Float
                     # cerberus: float
                     # python: float
-                    pass
+                    self.schema[col_name] = { "type" : "float" }
                 elif col_type == decimal.Decimal:
                     # sqlalchemy: Numeric
                     # cerberus: number
                     # python: decimal.Decimal
-                    pass
+                    self.schema[col_name] = { "type" : "number" }
                 elif col_type == bytes:
                     # sqlalchemy: LargeBinary
                     # cerberus: binary
                     # python: bytes
-                    pass
+                    self.schema[col_name] = { "type" : "binary" }
             else:
-                #print("  .. skipping: " + col_name )
+                print("  .. skipping: " + col_name )
                 pass
-      
+    
+    def json_dumps(self):
+        """ probably better return str(self.json_dump()) ??... test it """
+        return json.dumps(json.load(self.json_dump()))
+
+    def json_dump(self):
+        """ return this instances columns as json"""
+        return self._jsonify.dump(self).data
    
     def json_load_from_db(self, data, keep_id=False):
         if keep_id:
@@ -244,6 +254,7 @@ class SqlBaseModel(ModelObject):
         return res
 
     def q(self):
+        """ return a raw sqlalchemy query object """
         return session.query(self.__class__)
 
     def find_dynamic(self, filter_condition = [('name', 'eq', 'klaas')]):

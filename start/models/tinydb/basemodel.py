@@ -17,7 +17,7 @@ import uuid
 class TinyBaseModel(ModelObject):
     
     basic_schema = {
-        "id"    :   { "type" : "integer" },
+        "id"    :   { "type" : "string" },
         "created_at"    : { "type" : "datetime" },
         "last_updated"    : { "type" : "datetime" },
     }
@@ -74,11 +74,7 @@ class TinyBaseModel(ModelObject):
     def print_schema(self):
         print(50*"-")
         print("Schema for: " + str(self.__class__))
-        print("{0:30s} {1:20s}".format("Column", "Type"))
-        print(50*"-")
-        for col in self.__table__._columns:
-            print("{0:30s} {1:20s}".format(str(col), str(col.type)))
-            #print(dir(col))
+        from pprint import PrettyPrinter
 
     def get_relationships(self):
         """ Method not available for TinyDB Models """
@@ -131,21 +127,31 @@ class TinyBaseModel(ModelObject):
     
     def upsert(self):
         """ insert or update intelligently """
-        if self.get(self.id):
+        if getattr(self, eid, None):
+            # if the instance has an eid its already in the db
             # update
             Q = Query()
             last_updated = datetime.datetime.now()
-            self.table.update(self.json_dump(),Q.id==id)
+            self.table.update(self.json_dump(),Q.eid==self.eid)
         else:
             # insert            
-            self.table.insert(self.json_dump())
+            self.eid = self.table.insert(self.json_dump())
+
+
+    def get_by_eid(self, eid=None):
+        """ return by id """
+        if not eid:
+            eid = self.eid
+        Q = Query()
+        res = self.table.search(Q.eid == eid)
+        return res
 
     def get_by_id(self, id=None):
         """ return by id """
         if not id:
             id = self.id
         Q = Query()
-        res = self.table.search(Q.id == id)
+        res = self.table.search(Q.id == str(id))
         return res
         
 

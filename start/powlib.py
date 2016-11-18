@@ -431,8 +431,8 @@ class powDecNew():
                 else:
                     raise Exception("Wrong Datatype in schema") 
                 print("  .. removing the schema (raw) sql key")
-                cls.schema.pop("sql", None)
-                cls.schema.pop("sqltype", None)
+                cls.schema[elem].pop("sql", None)
+                cls.schema[elem].pop("sqltype", None)
 
             return cls
         return decorator

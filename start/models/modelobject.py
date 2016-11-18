@@ -82,12 +82,16 @@ class ModelObject():
         print(50*"-")
         for elem in inspect.getmembers(self, predicate=inspect.ismethod):
             meth = elem[0]
-
             if not meth.startswith("_"):
-                print("  .. " + str(elem[0]) , end="")
-                func=getattr(self,elem[0])
+                print("{0:30s}".format("  .. " +str.strip(meth)), end="")
+                #  print("  method:  " + str.strip(meth) , end="")
+                func=getattr(self,meth)
                 if func:
-                    print( str(func.__doc__)[0:100])
+                    if func.__doc__:
+                        print( "  -->  " + str.strip(func.__doc__[0:50]))
+                    else:
+                        #print( "             No docstring  ")
+                        print()
                 else:
                     print()
 
