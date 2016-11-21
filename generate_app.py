@@ -37,13 +37,15 @@ def copy_or_pump(src, dest, copy=False, appname=None, sqlite_path=None):
         print("    copying to ----->", dest )
         print("    .. :" + str(shutil.copy( src, dest )))
 
-def generate_app(appname, force=False):
+def generate_app(appname, force=False, outpath=".."):
     """ generates a small model with the given modelname
         also sets the right db and table settings and further boilerplate configuration.
         Template engine = tornado.templates
     """    
     print("  generating app: " + str(appname))
-    base=os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+    #base=os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+    base=os.path.normpath(outpath)
+
     print("  base: " + base)
     root=os.path.join(os.path.dirname(os.path.abspath(__file__)), "start")
     print("  root: " +  root)
@@ -106,6 +108,10 @@ if __name__ == "__main__":
     parser.add_argument('-n', "--name", action="store", 
         dest="name", help='-n appname',
         required=True)
+    parser.add_argument('-p', "--path", action="store", 
+        dest="path", help='-p out_path', default="..",
+        required=True)
+
     parser.add_argument("-f", "--force", 
         action="store_true", dest="force", default=False,
         help="force overwriting if invoked on existing app [default]")
@@ -128,7 +134,7 @@ if __name__ == "__main__":
     print(50*"-")
     print(" Generating your app: " + args.name)
     print(50*"-")
-    generate_app(args.name, args.force)
+    generate_app(args.name, args.force, args.path)
 
     base=os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
     apppath=os.path.normpath(os.path.join(base, args.name))
