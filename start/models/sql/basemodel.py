@@ -102,7 +102,7 @@ class SqlBaseModel(ModelObject):
             #exclude_list.append( ["id", "created_at", "last_updated"] )
             #print("    #" + str(idx) + "->" + str(col_name) + " -> " + str(col_type))
             # dont check internal columns or relation columns.
-            print(str(col[1].foreign_keys))
+            #print(str(col[1].foreign_keys))
             # col[0] is the column name
             # col[1] is the sqlalchemy.Column object
             if ( col_name not in exclude_list ) and ( len(col[1].foreign_keys) == 0 ): 
@@ -147,7 +147,7 @@ class SqlBaseModel(ModelObject):
                     # python: bytes
                     self.schema[col_name] = { "type" : "binary" }
             else:
-                print("  .. skipping: " + col_name )
+                #print("  .. skipping: " + col_name )
                 pass
     
     def json_dumps(self):

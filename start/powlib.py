@@ -165,7 +165,7 @@ class powDecNew():
        ##
        #
        #
-       return has_many( child_as_str, backref=True)
+       return self.has_many( child_as_str, backref=True)
 
     def has_many(self, child_as_str, backref=False):
         # cls is the class that has many of the related models (e.g. User, Post)
@@ -181,13 +181,13 @@ class powDecNew():
             #print(sorted(locals().keys()))
             #print(sorted(globals().keys()))
             import sys
-            if "{{appname}}.models." + child_module_name in sys.modules.keys():
-                #print(dir(sys.modules["{{appname}}.models." + child_module_name]))
-                child_klass = getattr(sys.modules["{{appname}}.models." + child_module_name], child_class_name)
+            if "{{appname}}.models.sql." + child_module_name in sys.modules.keys():
+                #print(dir(sys.modules["{{appname}}.models.sql." + child_module_name]))
+                child_klass = getattr(sys.modules["{{appname}}.models.sql." + child_module_name], child_class_name)
             else:
                 import importlib
-                mod = importlib.import_module('{{appname}}.models.' + child_module_name)
-                #mod = __import__('{{appname}}.models.'+rel_module_name, fromlist=[rel_class_name])
+                mod = importlib.import_module('{{appname}}.models.sql.' + child_module_name)
+                #mod = __import__('{{appname}}.models.sql.'+rel_module_name, fromlist=[rel_class_name])
                 child_klass = getattr(mod, child_class_name)
 
             setattr(parent_class, child_as_str, relationship(child_class_name, 
@@ -212,12 +212,12 @@ class powDecNew():
             parent_class_name = parent_as_str.capitalize()
             parent_module_name = parent_as_str
             import sys
-            if ("{{appname}}.models."+parent_module_name) in sys.modules.keys():
-                parent_klass = getattr(sys.modules["{{appname}}.models."+parent_module_name], parent_class_name)
+            if ("{{appname}}.models.sql."+parent_module_name) in sys.modules.keys():
+                parent_klass = getattr(sys.modules["{{appname}}.models.sql."+parent_module_name], parent_class_name)
             else:
                 import importlib
-                mod = importlib.import_module('{{appname}}.models.' + parent_module_name)
-                #mod = __import__('{{appname}}.models.'+rel_module_name, fromlist=[rel_class_name])
+                mod = importlib.import_module('{{appname}}.models.sql.' + parent_module_name)
+                #mod = __import__('{{appname}}.models.sql.'+rel_module_name, fromlist=[rel_class_name])
                 klass = getattr(mod, parent_class_name)
             #print("rel_class: " + str(klass))
             #print(dir(klass))
@@ -244,7 +244,7 @@ class powDecNew():
             child_module_name = child_as_str
             #print("child_class_name: " + child_class_name)
             #print("child_module_name: " + child_module_name)
-            mod = __import__('{{appname}}.models.'+child_module_name, fromlist=[child_class_name])
+            mod = __import__('{{appname}}.models.sql.'+child_module_name, fromlist=[child_class_name])
             klass = getattr(mod, child_class_name)
             #print("rel_class: " + str(klass))
             #print(dir(klass))
@@ -288,13 +288,13 @@ class powDecNew():
                 back_populates=pluralize(parent_name)))
 
             import sys
-            if "{{appname}}.models." + child_module_name in sys.modules.keys():
-                #print(dir(sys.modules["{{appname}}.models." + child_module_name]))
-                child_klass = getattr(sys.modules["{{appname}}.models." + child_module_name], child_class_name)
+            if "{{appname}}.models.sql." + child_module_name in sys.modules.keys():
+                #print(dir(sys.modules["{{appname}}.models.sql." + child_module_name]))
+                child_klass = getattr(sys.modules["{{appname}}.models.sql." + child_module_name], child_class_name)
             else:
                 import importlib
-                mod = importlib.import_module('{{appname}}.models.' + child_module_name)
-                #mod = __import__('{{appname}}.models.'+rel_module_name, fromlist=[rel_class_name])
+                mod = importlib.import_module('{{appname}}.models.sql.' + child_module_name)
+                #mod = __import__('{{appname}}.models.sql.'+rel_module_name, fromlist=[rel_class_name])
                 child_klass = getattr(mod, child_class_name)
             #
             # set the child attribute
@@ -333,7 +333,7 @@ class powDecNew():
             child_table_name = child_class_name.lower()
             #print("child_class_name: " + child_class_name)
             #print("child_module_name: " + child_module_name)
-            mod = __import__('{{appname}}.models.'+child_module_name, fromlist=[child_class_name])
+            mod = __import__('{{appname}}.models.sql.'+child_module_name, fromlist=[child_class_name])
             klass = getattr(mod, child_class_name)
             #print("rel_class: " + str(klass))
             #print(dir(klass))
@@ -357,7 +357,7 @@ class powDecNew():
             child_module_name = singularize(child_as_str)
             #print("child_class_name: " + child_class_name)
             #print("child_module_name: " + child_module_name)
-            mod = __import__('{{appname}}.models.'+child_module_name, fromlist=[child_class_name])
+            mod = __import__('{{appname}}.models.sql.'+child_module_name, fromlist=[child_class_name])
             klass = getattr(mod, child_class_name)
             #print("rel_class: " + str(klass))
             #print(dir(klass))
