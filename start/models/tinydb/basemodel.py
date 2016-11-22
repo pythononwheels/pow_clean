@@ -1,5 +1,3 @@
-
- 
 from tinydb import TinyDB, Query
 from {{appname}}.powlib import pluralize
 import datetime

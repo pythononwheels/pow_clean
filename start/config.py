@@ -41,29 +41,37 @@ myapp = {
     "enable_authentication"     :   False,   # False, simple or custom
     "auto_schema"   :   True,
     "logfile"       :   "pow.log",
-    "logformat"     :   logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    "logformat"     :   logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'),
+    #"environment"   :   "development"       # set the current environment (also see the db section)
 }
 
 
 database = {
-    "sql"   : {
-        "type"      :   "sqlite",
-        "dbname"    :   r"sql.db",   # better leave the r to enable absolute paths with backslashes 
+    "sql" : {
+        "type"      :   "sqlite"
+        "dbname"    :   r"sql.sqlite3",   # better leave the r to enable absolute paths with backslashes 
         "host"      :   None,       
         "port"      :   None,   
         "user"      :   None,
         "passwd"    :   None
     },
-    "tinydb"    : {
-        "type"      :   "tinydb",
+    "tinydb" : {
         "dbname"    :   r"tiny.db",   # better leave the r to enable absolute paths with backslashes 
         "host"      :   None,       
         "port"      :   None,   
         "user"      :   None,
         "passwd"    :   None
+    },
+    "elastic" : {
+        "dbname"    :   "test",   # == elasticsearch index 
+        "host"      :   "localhost",       
+        "port"      :   9200,   
+        "user"      :   None,
+        "passwd"    :   None
     }
-
 }
+
+
 
 #from handlers.very_raw_own_handler import VeryRawOwnHandler
 routes = [

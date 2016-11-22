@@ -1,6 +1,3 @@
-
- 
-
 from {{appname}}.powlib import pluralize
 import datetime
 from cerberus import Validator
