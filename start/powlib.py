@@ -447,7 +447,7 @@ class powDecNew():
     # the schema definition at once!
     # ONE definition for SQL, NoSQL and Validation.
     # See: http://elasticsearch-dsl.readthedocs.io/en/latest/persistence.html
-    def setup_elastic_schema(self, what=""):
+    def setup_elastic_dsl_schema(self, what=""):
         def decorator(cls):
             print("setup_schema:" + cls.__name__.lower())
             #
@@ -479,11 +479,7 @@ class powDecNew():
                 elif cls.schema[elem]["type"] == "float":
                     setattr(cls, elem, elasticsearch_dsl.Float(**elastic))
                 elif cls.schema[elem]["type"] == "string":
-                    if "elastictype" in cls.schema[elem]:
-                        if cls.schema[elem]["elastictype"].lower() == "text":
-                            setattr(cls, elem, elasticsearch_dsl.Text(**elastic))
-                        else:
-                            setattr(cls, elem, elasticsearch_dsl.String(**elastic))
+                    setattr(cls, elem, elasticsearch_dsl.Text(**elastic))
                 elif cls.schema[elem]["type"] == "bool":
                     setattr(cls, elem, elasticsearch_dsl.Boolean(**elastic))
                 elif cls.schema[elem]["type"] == "date":
@@ -495,10 +491,10 @@ class powDecNew():
                 elif cls.schema[elem]["type"] == "binary":
                     setattr(cls, elem, elasticsearch_dsl.Byte(**elastic))
                 elif cls.schema[elem]["type"] == "list":
-                    setattr(cls, elem, elasticsearch_dsl.String(**elastic))
+                    setattr(cls, elem, elasticsearch_dsl.Keyword(**elastic))
                 else:
                     raise Exception("Wrong Datatype in schema") 
-                print("  .. removing the schema (raw) elastic key(s)")
+                #print("  .. removing the schema (raw) elastic key(s)")
                 cls.schema[elem].pop("elastic", None)
                 cls.schema[elem].pop("elastictype", None)
 

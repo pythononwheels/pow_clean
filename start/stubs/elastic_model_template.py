@@ -1,37 +1,57 @@
 #
-# Elastic Model:  {{model_class_name}}
+# Elastic Model:  Testelastic
 #
-from elasticsearch_dsl import DocType, String, Date, Nested, Boolean, \
-    analyzer, InnerObjectWrapper, Completion
-from {{appname}}.models.elastic.basemodel import ElasticBaseModel
+from elasticsearch_dsl import Date, Boolean, Text, Integer, Byte, Float, Keyword
+from {{appname}}.models.elastic.dsl_basemodel import ElasticDSLBaseModel
 from {{appname}}.powlib import relation
+from elasticsearch_dsl import DocType
+from {{appname}}.database.elasticdblib import dbname
+from datetime import datetime
 
-@relation.setup_elastic_schema()
-class {{model_class_name}}(ElasticBaseModel):
+
+@relation.setup_elastic_dsl_schema()
+class {{model_class_name}}(DocType,ElasticDSLBaseModel):
 
     #
     # Use the cerberus schema style 
-    # which offer you immediate validation with cerberus
-    # Remember: There are no "sql" or "sqltype" keyowrds
-    # allowed since this is a TinyDB Model.
+    # which offer you an ElasticDSL schema and
+    # immediate validation with cerberus
     #
+    class Meta:
+        index =  dbname
+
     schema = {
-        'text': {'type': 'string'},
-        'name': {'type': 'string', 'maxlength' : 35},
-        'last': {
-            'type': 'number',
+        'title': {
+            'type': 'string',
+            "elastic" : {    
+                "analyzer"  : "snowball",
+                "fields"    : {'raw': Keyword()}
+            }
+        },
+        'body': {
+            'type': 'string', 'maxlength' : 235,
             "elastic" : {    
                 "analyzer"  : "snowball"
             }
-        }
+        },
+        'tags': {
+            'type': 'list',
+            "elastic" : {    
+                "index"  : "not_analyzed"
+            }
+        },
+        'published_from' : { "type": 'date' },
+        'lines' : { "type": 'integer' }
     }
 
 
-    #__table_args__ = { "extend_existing": True }
-
-    # init
-    def __init__(self, **kwargs):
-        self.init_on_load(**kwargs)
     #
     # your model's methods down here
+    # (the two below are just examples from the elasticsearch_dsl py documentation)
     #
+    def save(self, ** kwargs):
+        self.lines = len(self.body.split())
+        return super( {{model_class_name}},self).save(** kwargs)
+
+    def is_published(self):
+        return datetime.now() < self.published_from

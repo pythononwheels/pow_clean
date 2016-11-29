@@ -9,6 +9,7 @@ from {{appname}}.encoders import pow_json_serializer
 from {{appname}}.models.modelobject import ModelObject
 from {{appname}}.powlib import merge_two_dicts
 from {{appname}}.database.elasticdblib import es,dbname
+from elasticsearch_dsl import DocType
 
 class ElasticDSLBaseModel(ModelObject):
     """
@@ -47,13 +48,13 @@ class ElasticDSLBaseModel(ModelObject):
     # 
     def json_dumps(self, *args, **kwargs):
         """ just dump to json formatted string"""
-        #return json.dumps(self.db_dict_dump(), *args, default=pow_json_serializer, **kwargs)
-        raise NotImplementedError("Subclasses should overwrite this Method.")
+        return json.dumps(self.db_dict_dump(), *args, default=pow_json_serializer, **kwargs)
+        #raise NotImplementedError("Subclasses should overwrite this Method.")
 
     def json_dump(self, *args, **kwargs):
         """ just dump to json """
-        #return json.loads(self.json_dumps(*args, **kwargs))
-        raise NotImplementedError("Subclasses should overwrite this Method.")
+        return json.loads(self.json_dumps(*args, **kwargs))
+        #raise NotImplementedError("Subclasses should overwrite this Method.")
 
         
     def print_full(self):
@@ -99,17 +100,14 @@ class ElasticDSLBaseModel(ModelObject):
     
     def upsert(self, session=None):
         """ insert oro update intelligently """
-        res = es.index(index=dbname, doc_type=self.doc_type, body=self.json_dump)
-        if res.get("_id",None):
-            self._id = res.get("_id")
-        return res
+        self.save()
 
     def get_by_id(self, id=None):
         """ return result by id (only)"""
         if id:
-            es.get(index='posts', doc_type='blog', id=id)
+            self.get(id=id)
         else:
-            es.get(index='posts', doc_type='blog', id=self._id)
+            self.get(id=self._id)
         
 
     def from_statement(self, statement):
@@ -122,8 +120,7 @@ class ElasticDSLBaseModel(ModelObject):
 
     def find(self,q):
         """ Find something given a query or criterion """
-       res = es.search(index=dbname, q=q)
-       return res
+        raise NotImplementedError("Subclasses should overwrite this Method.")
     
     def find_all(self, *criterion, raw=False, as_json=False, limit=None, offset=None):
         """ Find something given a query or criterion and parameters """
