@@ -7,7 +7,7 @@ from {{appname}}.powlib import relation
 from {{appname}}.database.sqldblib import Base 
 
 #@relation.has_many("<plural_other_models>")
-@relation.setup_schema()
+@relation.setup_sql_schema()
 class {{model_class_name}}(Base):
     #
     # You can use column definitions in sqlalchemy classic style

@@ -106,7 +106,7 @@ class ModelObject():
             else:
                 return v
 
-    def init_from_xml(self, data, root="root"):
+    def init_from_xml(self, data, root="root", ignore=True):
         """
             makes a py dict from input xml and
             sets the instance attributes 
@@ -116,7 +116,7 @@ class ModelObject():
         d=xmltodict.parse(data)
         d=d[root]
         for key in d:
-            print("key: " + key + " : " + str(d[key]) )
+            #print("key: " + key + " : " + str(d[key]) )
             if isinstance(d[key],dict):
                 print(d[key])
                 for elem in d[key]:
@@ -124,20 +124,32 @@ class ModelObject():
                         if key in self.__class__.__dict__:
                             setattr(self, key, d[key][elem])
             else:
-                if key in self.__class__.__dict__:
+                #if key in self.__class__.__dict__:
+                if ignore:
                     setattr(self, key, d[key])
+                else:
+                    if key in self.schema:
+                        setattr(self, key, d[key])
+                    else:
+                        raise Exception(" Key: " + str(key) + " is not in schema for: " + self.__class__.__name__)
 
-    def init_from_json(self, data):
+    def init_from_json(self, data, ignore=True):
         """
             makes a py dict from input json and
             sets the instance attributes 
         """
         d=json.loads(data)
         for key in d:
-            if key in self.__class__.__dict__:
+            if ignore:
                 setattr(self, key, d[key])
+            else:
+                if key in self.schema:
+                    setattr(self, key, d[key])
+                else:
+                    raise Exception(" Key: " + str(key) + " is not in schema for: " + self.__class__.__name__)
 
-    def init_from_csv(self, keys, data):
+
+    def init_from_csv(self, keys, data, ignore=True):
         """
             makes a py dict from input ^csv and
             sets the instance attributes 
@@ -150,7 +162,13 @@ class ModelObject():
         if not len(keys) == len(data):
             raise AssertionError("keys and data must have the same lenght.")
         for k,d in zip(keys, data):
-            setattr(self, k, d)
+            if ignore:
+                setattr(self, k, d)
+            else:
+                if key in self.schema:
+                    setattr(self, key, d[key])
+                else:
+                    raise Exception(" Key: " + str(key) + " is not in schema for: " + self.__class__.__name__)
     
     def json_dumps(self, *args, **kwargs):
         """ just dump to json formatted string"""

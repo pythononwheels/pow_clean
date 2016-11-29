@@ -1,8 +1,9 @@
 import re
 import os
-from sqlalchemy import Column, Integer, String, Date, DateTime, Float, Unicode, Text, Boolean, Numeric, BigInteger
+
 from sqlalchemy import Table
 import logging
+
 
 
 
@@ -373,7 +374,7 @@ class powDecNew():
     # the schema definition at once!
     # ONE definition for SQL, NoSQL and Validation.
     # 
-    def setup_schema(self, what=""):
+    def setup_sql_schema(self, what=""):
         def decorator(cls):
             print("setup_schema:" + cls.__name__.lower())
             #
@@ -390,7 +391,8 @@ class powDecNew():
             #    
             colclass = None
             
-
+            from sqlalchemy import Column, Integer, String, Date, DateTime, Float
+            from sqlalchemy import Unicode, Text, Boolean, Numeric, BigInteger, LargeBinary
             #
             # now set the right sqlalchemy type for the column
             #
@@ -428,11 +430,77 @@ class powDecNew():
                     setattr(cls, elem, Column(elem, DateTime, **sql))
                 elif cls.schema[elem]["type"] == "number":
                     setattr(cls, elem, Column(elem, Numeric, **sql))
+                elif cls.schema[elem]["type"] == "binary":
+                    setattr(cls, elem, Column(elem, LargeBinary, **sql))
                 else:
                     raise Exception("Wrong Datatype in schema") 
-                print("  .. removing the schema (raw) sql key")
+                print("  .. removing the schema (raw) sql key(s)")
                 cls.schema[elem].pop("sql", None)
                 cls.schema[elem].pop("sqltype", None)
+
+            return cls
+        return decorator
+
+    #
+    # sets up an elastic DSLschema from a cerberus schema dict
+    # goal is to go seamlessly to NoSql AND to bring validation in
+    # the schema definition at once!
+    # ONE definition for SQL, NoSQL and Validation.
+    # See: http://elasticsearch-dsl.readthedocs.io/en/latest/persistence.html
+    def setup_elastic_schema(self, what=""):
+        def decorator(cls):
+            print("setup_schema:" + cls.__name__.lower())
+            #
+            # create an elastic model from the schema
+            #
+            # there are two special keys you can use additionally to the
+            # standard cerberus syntx:
+            # "elastic" :   add any Elastic DSL "Column" __init__ kwargs here, they will be handed raw
+            #               to the Column __init__
+            # "elastictype" : add a more specific elasticserach_dsl type definition (Text instead of string)
+            # the two special keys will be removed from the schema at the end of this
+            # decorator.
+            #    
+
+            #
+            # now set the right elastic types for the doc
+            #
+            from datetime import datetime
+            #from elasticsearch_dsl import DocType, String, Date, Nested, Boolean, Integer\
+            #    Float, Byte, Text, analyzer, InnerObjectWrapper, Completion
+            import elasticsearch_dsl
+            
+            for elem in cls.schema.keys():
+                #print(elem)
+                # the raw Column __init__ parameters dict
+                elastic=cls.schema[elem].get("elastic", {})
+                if cls.schema[elem]["type"] == "integer":
+                    setattr(cls, elem, elasticsearch_dsl.Integer(**elastic))
+                elif cls.schema[elem]["type"] == "float":
+                    setattr(cls, elem, elasticsearch_dsl.Float(**elastic))
+                elif cls.schema[elem]["type"] == "string":
+                    if "elastictype" in cls.schema[elem]:
+                        if cls.schema[elem]["elastictype"].lower() == "text":
+                            setattr(cls, elem, elasticsearch_dsl.Text(**elastic))
+                        else:
+                            setattr(cls, elem, elasticsearch_dsl.String(**elastic))
+                elif cls.schema[elem]["type"] == "bool":
+                    setattr(cls, elem, elasticsearch_dsl.Boolean(**elastic))
+                elif cls.schema[elem]["type"] == "date":
+                    setattr(cls, elem, elasticsearch_dsl.Date(**elastic))
+                elif cls.schema[elem]["type"] == "datetime":
+                    setattr(cls, elem, elasticsearch_dsl.Date(**elastic))
+                elif cls.schema[elem]["type"] == "number":
+                    setattr(cls, elem, elasticsearch_dsl.Integer(**elastic))
+                elif cls.schema[elem]["type"] == "binary":
+                    setattr(cls, elem, elasticsearch_dsl.Byte(**elastic))
+                elif cls.schema[elem]["type"] == "list":
+                    setattr(cls, elem, elasticsearch_dsl.String(**elastic))
+                else:
+                    raise Exception("Wrong Datatype in schema") 
+                print("  .. removing the schema (raw) elastic key(s)")
+                cls.schema[elem].pop("elastic", None)
+                cls.schema[elem].pop("elastictype", None)
 
             return cls
         return decorator

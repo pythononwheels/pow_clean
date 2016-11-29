@@ -55,7 +55,7 @@ class SqlBaseModel(ModelObject):
             #print(" .. found a schema for: " +str(self.__class__.__name__) + " in class dict")
             self.schema = self.__class__.__dict__["schema"]
         # add the sqlcolumns schema definitions to the cerberus schema (if there are any)
-        if myapp["auto_schema"]:
+        if myapp["sql_auto_schema"]:
             self._setup_schema_from_sql()
             
 

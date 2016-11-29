@@ -68,13 +68,13 @@ class <DBNAME>BaseModels(ModelObject):
 
     def create_table(self):
         """
-            created the physical table in the DB
+            create the physical table in the DB
         """
         raise NotImplementedError("Subclasses should overwrite this Method.")
 
     def drop_table(self):
         """
-            created the physical table in the DB
+            drop the physical table in the DB
         """
         raise NotImplementedError("Subclasses should overwrite this Method.")
     

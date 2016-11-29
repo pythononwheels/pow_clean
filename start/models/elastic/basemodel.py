@@ -7,22 +7,39 @@ from {{appname}}.config import myapp
 from {{appname}}.powlib import merge_two_dicts
 from {{appname}}.encoders import pow_json_serializer
 from {{appname}}.models.modelobject import ModelObject
+from {{appname}}.powlib import merge_two_dicts
+from {{appname}}.database.elasticdblib import es,dbname
 
 class ElasticBaseModels(ModelObject):
     """
         The BElasticSearch BaseModel Class
     """    
 
+     basic_schema = {
+        "id"    :   { "type" : "number" },
+        "created_at"    : { "type" : "datetime" },
+        "last_updated"    : { "type" : "datetime" },
+    }
 
     def __init__(self, *args, **kwargs):
         """
             
         """
-        self.tablename = pluralize(self.__class__.__name__.lower())
-        self.index = self.tablename
         super().init_on_load(*args, **kwargs)
-    
-                           
+        self.tablename = pluralize(self.__class__.__name__.lower())
+        self.doc_type = self.tablename
+        
+        #
+        # if there is a schema (cerberus) set it in the instance
+        #
+        if "schema" in self.__class__.__dict__:
+            print(" .. found a schema for: " +str(self.__class__.__name__) + " in class dict")
+            self.schema = merge_two_dicts(
+                self.__class__.__dict__["schema"],
+                self.__class__.basic_schema)
+            print("  .. Schema is now: " + str(self.schema))
+        
+
     #
     # These Mehtods should be implemented by every subclass
     # 
@@ -68,23 +85,30 @@ class ElasticBaseModels(ModelObject):
 
     def create_table(self):
         """
-            created the physical table in the DB
+            create the physical table in the DB
         """
         raise NotImplementedError("Subclasses should overwrite this Method.")
 
     def drop_table(self):
         """
-            created the physical table in the DB
+            drop the physical table in the DB
         """
         raise NotImplementedError("Subclasses should overwrite this Method.")
     
     def upsert(self, session=None):
         """ insert oro update intelligently """
-        raise NotImplementedError("Subclasses should overwrite this Method.")
+        res = es.index(index=dbname, doc_type=self.doc_type, body=self.json_dump)
+        if res.get("_id",None):
+            self._id = res.get("_id")
+        return res
 
-    def get_by_id(self, id):
+    def get_by_id(self, id=None):
         """ return result by id (only)"""
-        raise NotImplementedError("Subclasses should overwrite this Method.")
+        if id:
+            es.get(index='posts', doc_type='blog', id=id)
+        else:
+            es.get(index='posts', doc_type='blog', id=self._id)
+        
 
     def from_statement(self, statement):
         """ execute a given DB statement raw """
@@ -94,9 +118,10 @@ class ElasticBaseModels(ModelObject):
         """ return the next page of results. See config["myapp"].page_size """
         raise NotImplementedError("Subclasses should overwrite this Method.")
 
-    def find(self,*criterion):
+    def find(self,q):
         """ Find something given a query or criterion """
-        raise NotImplementedError("Subclasses should overwrite this Method.")
+       res = es.search(index=dbname, q=q)
+       return res
     
     def find_all(self, *criterion, raw=False, as_json=False, limit=None, offset=None):
         """ Find something given a query or criterion and parameters """

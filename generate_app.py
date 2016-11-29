@@ -105,9 +105,11 @@ def generate_app(appname, force=False, outpath=".."):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    
     parser.add_argument('-n', "--name", action="store", 
         dest="name", help='-n appname',
         required=True)
+
     parser.add_argument('-p', "--path", action="store", 
         dest="path", help='-p out_path', default="..",
         required=True)

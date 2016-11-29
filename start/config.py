@@ -39,10 +39,10 @@ myapp = {
     },
     "page_size"         : 10,
     "enable_authentication"     :   False,   # False, simple or custom
-    "auto_schema"   :   True,
-    "logfile"       :   "pow.log",
-    "logformat"     :   logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'),
-    #"environment"   :   "development"       # set the current environment (also see the db section)
+    "sql_auto_schema"   :   True,
+    "logfile"           :   "pow.log",
+    "logformat"         :   logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'),
+    #"environment"       :   "development"       # set the current environment (also see the db section)
 }
 
 
@@ -63,8 +63,8 @@ database = {
         "passwd"    :   None
     },
     "elastic" : {
-        "dbname"    :   "test",   # == elasticsearch index 
-        "host"      :   "localhost",       
+        "dbname"    :   "testdb",   # == elasticsearch index 
+        "hosts"     :   ["localhost"],       
         "port"      :   9200,   
         "user"      :   None,
         "passwd"    :   None

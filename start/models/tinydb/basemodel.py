@@ -64,7 +64,8 @@ class TinyBaseModel(ModelObject):
             for key in kwargs.keys():
                 if key in self.__class__.__dict__:
                     setattr(self, key, kwargs[key])
-          
+
+
     def json_load_from_db(self, data, keep_id=False):
         #TODO:  refresh the object from db and return json
         pass
