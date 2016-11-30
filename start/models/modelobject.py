@@ -101,7 +101,7 @@ class ModelObject():
             # if instance has a schema. (also see init_on_load)
             #v = cerberus.Validator(self.schema)
             v = Validator(self.schema)
-            if v.validate(self.db_dict_dump()):
+            if v.validate(self.to_dict(lazy=False)):
                 return True
             else:
                 return v
@@ -170,52 +170,32 @@ class ModelObject():
                 else:
                     raise Exception(" Key: " + str(key) + " is not in schema for: " + self.__class__.__name__)
     
-    def json_dumps(self, *args, **kwargs):
-        """ just dump to json formatted string"""
-        return json.dumps(self.db_dict_dump(), *args, default=pow_json_serializer, **kwargs)
-
-    def json_dump(self, *args, **kwargs):
-        """ just dump to json """
+    def to_json(self,*args, **kwargs):
+        """ just json """
         return json.loads(self.json_dumps(*args, **kwargs))
 
-    def db_dict_dump(self, validate=False):
-        """
-            return the attributes defined in the schema 
-            as a dictionary
-            validate if forced.
-        """
-        if validate:
-            ret = self.validate()
-            if ret == True:
-                return self.dict_dump(from_schema=True)
-            else:
-                raise AssertionError("Schema validation failed for model: " + 
-                    self.__class__.__name__ + str(ret))
-        else:
-            return self.dict_dump(from_schema=True)
+    def json_dumps(self, *args, default=pow_json_serializer, **kwargs):
+        """ just dump to json formatted string"""
+        return json.dumps(self.to_dict(), *args, default=default, **kwargs)
+
             
 
-    def dict_dump(self, from_schema=True):
+    def to_dict(self, lazy=True):
         """
             return vars / attributes of this instance as dict
             raw = True => all (almost: except for those in exclude_list)
             raw = False => only those defined in schema
         """
         d = {}
-        if not from_schema:
-            # return  "almost all attributes"
-            exclude_list=["_jsonify","_sa_instance_state", "session", "schema", "table", "tree_parent_id", "tree_children"]
-            if getattr(self, "exclude_list", False):
-                exclude_list += self.exclude_list
-            for elem in vars(self).keys():
-                if not elem in exclude_list:
-                    d[elem] = vars(self)[elem]
-            return d
-        else:
-            # return just the attributes that are defined in the schema 
-            for elem in self.schema.keys():
-                d[elem] = getattr(self,elem, None)
-            return d
+        # return just the attributes that are defined in the schema 
+        for elem in self.schema.keys():
+            val = getattr(self,elem, None)
+            if lazy:
+                d[elem] = val
+            else:
+                if val:
+                    d[elem] = val
+        return d
         
 
 
@@ -235,7 +215,8 @@ class ModelObject():
             p
         """
         from pprint import pformat
-        j = self.json_dump()
+        #j = self.json_dump()
+        j = self.to_dict()
         return pformat(j,indent=+4)
 
     def __str__(self):

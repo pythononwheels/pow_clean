@@ -434,7 +434,7 @@ class powDecNew():
                     setattr(cls, elem, Column(elem, LargeBinary, **sql))
                 else:
                     raise Exception("Wrong Datatype in schema") 
-                print("  .. removing the schema (raw) sql key(s)")
+                #print("  .. removing the schema (raw) sql key(s)")
                 cls.schema[elem].pop("sql", None)
                 cls.schema[elem].pop("sqltype", None)
 

@@ -16,6 +16,7 @@ class TinyBaseModel(ModelObject):
     
     basic_schema = {
         "id"    :   { "type" : "string" },
+        "eid"   :   { "type" : "string" },
         "created_at"    : { "type" : "datetime" },
         "last_updated"    : { "type" : "datetime" },
     }
@@ -23,9 +24,9 @@ class TinyBaseModel(ModelObject):
 
     def init_on_load(self, *args, **kwargs):
         
-        self.id = uuid.uuid4()
-        self.created_at = datetime.datetime.now()
-        self.last_updated = datetime.datetime.now()
+        #self.id = uuid.uuid4()
+        #self.created_at = datetime.datetime.now()
+        #self.last_updated = datetime.datetime.now()
 
         self.session=None
         self.tablename = pluralize(self.__class__.__name__.lower())
@@ -100,7 +101,7 @@ class TinyBaseModel(ModelObject):
         # p=Post()
         # p
         from pprint import pformat
-        d = self.json_dump()
+        d = self.to_json()
         return pformat(d,indent=+4)
 
     def __str__(self):
@@ -126,15 +127,21 @@ class TinyBaseModel(ModelObject):
     
     def upsert(self):
         """ insert or update intelligently """
+        
+        #self.created_at = datetime.datetime.now()
+        #self.last_updated = datetime.datetime.now()
         if getattr(self, eid, None):
             # if the instance has an eid its already in the db
             # update
             Q = Query()
-            last_updated = datetime.datetime.now()
+            self.last_updated = datetime.datetime.now()
             self.table.update(self.json_dump(),Q.eid==self.eid)
         else:
             # insert            
-            self.eid = self.table.insert(self.json_dump())
+            self.last_updated = datetime.datetime.now()
+            self.created_at = self.last_updated
+            self.id = str(uuid.uuid4())
+            self.eid = self.table.insert(self.json_dump())            
 
 
     def get_by_eid(self, eid=None):

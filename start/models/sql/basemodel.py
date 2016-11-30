@@ -125,12 +125,12 @@ class SqlBaseModel(ModelObject):
                     # sqlalchemy: Date
                     # cerberus: date
                     # python: datetime.date
-                    self.schema[col_name] = { "type" : "datetime.date" }
+                    self.schema[col_name] = { "type" : "date" }
                 elif col_type == datetime.datetime:
                     # sqlalchemy: DateTime
                     # cerberus: datetime
                     # python: datetime.datetime
-                    self.schema[col_name] = { "type" : "datetime.datetime" }
+                    self.schema[col_name] = { "type" : "datetime" }
                 elif col_type == float:
                     # sqlalchemy: Float
                     # cerberus: float

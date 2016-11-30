@@ -21,8 +21,8 @@ class ElasticDSLBaseModel(ModelObject):
         "last_updated"    : { "type" : "datetime" },
     }
 
-    class Meta:
-        index = dbname
+    #class Meta:
+    #    index = dbname
 
     def __init__(self, *args, **kwargs):
         """
