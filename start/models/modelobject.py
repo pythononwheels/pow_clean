@@ -170,14 +170,20 @@ class ModelObject():
                 else:
                     raise Exception(" Key: " + str(key) + " is not in schema for: " + self.__class__.__name__)
     
-    def to_json(self,*args, **kwargs):
+    def to_json(self, *args, default=pow_json_serializer, **kwargs):
         """ just json """
-        return json.loads(self.json_dumps(*args, **kwargs))
-
-    def json_dumps(self, *args, default=pow_json_serializer, **kwargs):
-        """ just dump to json formatted string"""
+        #return json.loads(self.json_dumps(*args, **kwargs))
         return json.dumps(self.to_dict(), *args, default=default, **kwargs)
 
+    def to_csv(self, encoder=None):
+        """ returns the models as csv using the given encoder.
+            if no encoder is given the defined encoders from config.py are taken.
+        """
+        if encoder:
+            encoder = encoder
+        else:
+            encoder = myapp["encoder"]["csv"]
+        return encoder.dumps(self.to_json())
             
 
     def to_dict(self, lazy=True):

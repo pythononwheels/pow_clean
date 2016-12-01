@@ -108,7 +108,10 @@ class ElasticDSLBaseModel(ModelObject):
             self.get(id=id)
         else:
             self.get(id=self._id)
-        
+
+    def delete(self):
+        """ just deleting this instance """
+        self.delete()
 
     def from_statement(self, statement):
         """ execute a given DB statement raw """

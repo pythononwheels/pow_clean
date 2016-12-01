@@ -85,7 +85,7 @@ class Email(TinyBaseModel):
         # p=Post()
         # p
         from pprint import pformat
-        d = self.to_json()
+        d = self.to_dict()
         d["raw_msg"] = "NA"
         return pformat(d,indent=+4)
 

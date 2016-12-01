@@ -19,8 +19,8 @@ class Parent(Base):
     #    datetime           DateTime
     #    date               Date
     #    number             Numeric
-    # 
-    # lists are handled through @relations.has_many or many_to_many
+    #    
+    # lists have to be handled through @relations.has_many or many_to_many
     # 
     schema = {
         # string sqltypes can be TEXT or UNICODE or nothing

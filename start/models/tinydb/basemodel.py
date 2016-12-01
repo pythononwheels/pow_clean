@@ -1,4 +1,4 @@
-from tinydb import TinyDB, Query
+from tinydb import TinyDB, Query, where
 from {{appname}}.powlib import pluralize
 import datetime
 from cerberus import Validator
@@ -34,17 +34,17 @@ class TinyBaseModel(ModelObject):
         # all further Db operations will work on the table
         #
         self.table = tinydb.table(self.tablename)
-        
+        self.where = where
 
         #
         # if there is a schema (cerberus) set it in the instance
         #
         if "schema" in self.__class__.__dict__:
-            print(" .. found a schema for: " +str(self.__class__.__name__) + " in class dict")
+            #print(" .. found a schema for: " +str(self.__class__.__name__) + " in class dict")
             self.schema = merge_two_dicts(
                 self.__class__.__dict__["schema"],
                 self.__class__.basic_schema)
-            print("  .. Schema is now: " + str(self.schema))
+            #print("  .. Schema is now: " + str(self.schema))
 
 
         #
@@ -131,7 +131,7 @@ class TinyBaseModel(ModelObject):
         
         #self.created_at = datetime.datetime.now()
         #self.last_updated = datetime.datetime.now()
-        if getattr(self, eid, None):
+        if getattr(self, "eid", None):
             # if the instance has an eid its already in the db
             # update
             Q = Query()
@@ -142,7 +142,7 @@ class TinyBaseModel(ModelObject):
             self.last_updated = datetime.datetime.now()
             self.created_at = self.last_updated
             self.id = str(uuid.uuid4())
-            self.eid = self.table.insert(self.json_dump())            
+            self.eid = self.table.insert(self.to_json())            
 
 
     def get_by_eid(self, eid=None):
@@ -174,7 +174,7 @@ class TinyBaseModel(ModelObject):
             return start <= val <= end
         Q = Query()
         print(str(*criterion))
-        Att = getattr(Q, *crtiterion,)
+        Att = getattr(Q, *crtiterion)
         res = self.table.search(Att(testfunc, start, end ))
 
     def json_result_to_object(self, res):
@@ -185,7 +185,7 @@ class TinyBaseModel(ModelObject):
         reslist = []
         m = self.__class__()
         for elem in res:
-            m.init_from_json(elem)
+            m.init_from_json(json.dumps(elem))
             reslist.append(m)
         return reslist
 
@@ -199,9 +199,14 @@ class TinyBaseModel(ModelObject):
             reslist = self.json_result_to_object(res)
             return reslist
 
-    def find_all(self, *criterion, raw=False, as_json=False, limit=None, offset=None):
+    def find_all(self, as_json=False):
         """ Find something given a query or criterion and parameters """
-        return self.table.all()
+        res =  self.table.all()
+        if as_json:
+            return json.dumps(res)
+        else:
+            reslist = self.json_result_to_object(res)
+            return reslist
     
     def find_one(self, *criterion, as_json=False):
         """ find only one result. Raise Excaption if more than one was found"""
@@ -220,7 +225,7 @@ class TinyBaseModel(ModelObject):
 
     def find_first(self, *criterion, as_json=False):
         """ return the first hit, or None"""
-        res = self.find(*criterion, as_json)
+        res = self.find(*criterion, as_json=as_json)
         try:
             return res[0]
         except Exception as err:
