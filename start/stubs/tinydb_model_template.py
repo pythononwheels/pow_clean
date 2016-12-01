@@ -19,10 +19,9 @@ class {{model_class_name}}(TinyBaseModel):
         }
     }
 
-
-    #__table_args__ = { "extend_existing": True }
-
+    #
     # init
+    #
     def __init__(self, **kwargs):
         self.init_on_load(**kwargs)
     #

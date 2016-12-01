@@ -58,7 +58,7 @@ class ModelObject():
             # initializes the instanmce with the given kwargs values:
             # e.g.: Model(test="sometext", title="sometitle")
             for key in kwargs.keys():
-                if key in self.__class__.__dict__:
+                if key in self.schema:
                     setattr(self, key, kwargs[key])
           
     def api(self):
