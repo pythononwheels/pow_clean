@@ -4,11 +4,11 @@
 from {{appname}}.config import database
 from elasticsearch import Elasticsearch
 import requests
-from elasticsearch_dsl.connections import connections
+#from elasticsearch_dsl.connections import connections
 
 elastic = database.get("elastic", None)
 
-connections.create_connection(hosts= elastic["hosts"], timeout=20)
+#connections.create_connection(hosts= elastic["hosts"], timeout=20)
 
 es=None
 if elastic:

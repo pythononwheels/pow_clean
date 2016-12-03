@@ -10,7 +10,7 @@ from {{appname}}.models.modelobject import ModelObject
 from {{appname}}.powlib import merge_two_dicts
 from {{appname}}.database.elasticdblib import es,dbname
 
-class ElasticDSLBaseModel(ModelObject):
+class ElasticBaseModel(ModelObject):
     """
         The ElasticSearch BaseModel Class
     """    
@@ -20,8 +20,6 @@ class ElasticDSLBaseModel(ModelObject):
         "last_updated"    : { "type" : "datetime" },
     }
 
-    class Meta:
-        index = dbname
 
     def __init__(self, *args, **kwargs):
         """
@@ -30,6 +28,7 @@ class ElasticDSLBaseModel(ModelObject):
         #super(ModelObject, self).init_on_load(*args, **kwargs)
         self.tablename = pluralize(self.__class__.__name__.lower())
         self.doc_type = self.tablename
+        self.dbname = dbname
         
         #
         # if there is a schema (cerberus) set it in the instance
@@ -43,18 +42,8 @@ class ElasticDSLBaseModel(ModelObject):
         
 
     #
-    # These Mehtods should be implemented by every subclass
+    # These Methods should be implemented by every subclass
     # 
-    def json_dumps(self, *args, **kwargs):
-        """ just dump to json formatted string"""
-        #return json.dumps(self.db_dict_dump(), *args, default=pow_json_serializer, **kwargs)
-        raise NotImplementedError("Subclasses should overwrite this Method.")
-
-    def json_dump(self, *args, **kwargs):
-        """ just dump to json """
-        #return json.loads(self.json_dumps(*args, **kwargs))
-        raise NotImplementedError("Subclasses should overwrite this Method.")
-
         
     def print_full(self):
         """ Subclasses should overwrite this Method. 
@@ -97,9 +86,17 @@ class ElasticDSLBaseModel(ModelObject):
         """
         raise NotImplementedError("Subclasses should overwrite this Method.")
     
+    def create(self):
+        """ first time sabve an instance to DB """
+        self.last_updated = datetime.datetime.now()
+        self.created = self.last_updated
+        res = es.index(index=dbname, doc_type=self.doc_type, body=self.to_json())
+
     def upsert(self, session=None):
-        """ insert oro update intelligently """
-        res = es.index(index=dbname, doc_type=self.doc_type, body=self.json_dump)
+        """ insert or update intelligently """
+        self.last_updated = datetime.datetime.now()
+        res = es.index(index=dbname, doc_type=self.doc_type, body=self.to_json())
+
         if res.get("_id",None):
             self._id = res.get("_id")
         return res
@@ -107,9 +104,9 @@ class ElasticDSLBaseModel(ModelObject):
     def get_by_id(self, id=None):
         """ return result by id (only)"""
         if id:
-            es.get(index='posts', doc_type='blog', id=id)
+            es.get(index=dbname, doc_type=self.doc_type, id=id)
         else:
-            es.get(index='posts', doc_type='blog', id=self._id)
+            es.get(index=dbname, doc_type=self.doc_type, id=self._id)
         
 
     def from_statement(self, statement):
@@ -120,10 +117,10 @@ class ElasticDSLBaseModel(ModelObject):
         """ return the next page of results. See config["myapp"].page_size """
         raise NotImplementedError("Subclasses should overwrite this Method.")
 
-    def find(self,q):
+    def find(self,body):
         """ Find something given a query or criterion """
-       res = es.search(index=dbname, q=q)
-       return res
+        res = es.search(index=dbname, body=body)
+        return res
     
     def find_all(self, *criterion, raw=False, as_json=False, limit=None, offset=None):
         """ Find something given a query or criterion and parameters """
