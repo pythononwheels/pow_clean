@@ -28,12 +28,12 @@ class BaseHandler(tornado.web.RequestHandler):
         print("  .. .. args: " + str(args))
         print("  .. .. kwargs: " + str(kwargs))
         if "method" in kwargs.keys():
-            # direct route
-            print("  ..  .. direct route.")
+            # direct route to a method.
             self.dispatch = {
                 "method"    :   kwargs.get("method", None),
                 "verbs"     :   kwargs.get("verbs", [])
             }
+            print(" .. direct route." + str(self.dispatch))
         else:
             self.dispatch = {
                 "method"    :   "rest",
