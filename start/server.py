@@ -18,7 +18,7 @@ import logging
 
 app=Application()
 if __name__ == "__main__":
-
+    print()
     #tornado.options.parse_command_line()
     #from tornado.log import enable_pretty_logging
     #enable_pretty_logging()
@@ -55,7 +55,7 @@ if __name__ == "__main__":
     print(50*"-")
     print("starting the pow server Server ")
     print(50*"-")
-    print("visit: https://localhost:" + str(app_settings["port"]))
+    print("visit: http://localhost:" + str(app_settings["port"]))
     for idx, elem in enumerate(db_settings.keys()):
         if elem.lower() == "sql":
             print("  DB #" +str(idx) + ": " + db_settings[elem]["type"])

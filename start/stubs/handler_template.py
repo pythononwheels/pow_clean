@@ -1,11 +1,11 @@
-from {{appname}}.handlers.base import BaseHandler
+from {{appname}}.handlers.base2 import BaseHandler2
 from {{appname}}.models.{{model_type}}.{{handler_name}} import {{handler_model_class_name}}
 from {{appname}}.config import myapp, database
 from {{appname}}.application import app
 import tornado.web
 
 @app.add_rest_routes("{{handler_name}}")
-class {{handler_name}}Handler(BaseHandler):
+class {{handler_name}}Handler(BaseHandler2):
 
     # 
     # every pow handler automatically gets these RESTful routes

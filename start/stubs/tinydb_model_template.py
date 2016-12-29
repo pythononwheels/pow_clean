@@ -8,8 +8,6 @@ class {{model_class_name}}(TinyBaseModel):
     #
     # Use the cerberus schema style 
     # which offer you immediate validation with cerberus
-    # Remember: There are no "sql" or "sqltype" keyowrds
-    # allowed since this is a TinyDB Model.
     #
     schema = {
         'text': {'type': 'string'},

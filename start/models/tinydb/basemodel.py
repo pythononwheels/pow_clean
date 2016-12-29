@@ -1,22 +1,23 @@
 from tinydb import TinyDB, Query, where
-from {{appname}}.powlib import pluralize
+from testapp.powlib import pluralize
 import datetime
 from cerberus import Validator
 import xmltodict
 import simplejson as json
 import datetime, decimal
-from {{appname}}.config import myapp
-from {{appname}}.database.tinydblib import tinydb
-from {{appname}}.powlib import merge_two_dicts
-from {{appname}}.models.modelobject import ModelObject
+from testapp.config import myapp
+from testapp.database.tinydblib import tinydb
+from testapp.powlib import merge_two_dicts
+from testapp.models.modelobject import ModelObject
 import uuid
+from testapp.encoders import pow_json_serializer
 
 #print ('importing module %s' % __name__)
 class TinyBaseModel(ModelObject):
     
     basic_schema = {
         "id"    :   { "type" : "string" },
-        "eid"   :   { "type" : "string" },
+        #"eid"   :   { "type" : "string" },
         "created_at"    : { "type" : "datetime" },
         "last_updated"    : { "type" : "datetime" },
     }
@@ -46,7 +47,14 @@ class TinyBaseModel(ModelObject):
                 self.__class__.basic_schema)
             #print("  .. Schema is now: " + str(self.schema))
 
-
+        # setup  the instance attributes from schema
+        for key in self.schema.keys():
+            if self.schema[key].get("default", None):
+                setattr(self,key,self.schema[key].get("default"))
+                self.schema[key].pop("default", None)
+            else:
+                setattr(self, key, None)
+                    
         #
         # setup values from kwargs or from init_from_<format> if format="someformat"
         # example: m = Model( data = { 'test' : 1 }, format="json")
@@ -102,7 +110,7 @@ class TinyBaseModel(ModelObject):
         # p=Post()
         # p
         from pprint import pformat
-        d = self.to_json()
+        d = self.to_dict()
         return pformat(d,indent=+4)
 
     def __str__(self):
@@ -136,13 +144,13 @@ class TinyBaseModel(ModelObject):
             # update
             Q = Query()
             self.last_updated = datetime.datetime.now()
-            self.table.update(self.json_dump(),Q.eid==self.eid)
+            self.table.update(self.to_dict(),Q.eid==self.eid)
         else:
             # insert            
             self.last_updated = datetime.datetime.now()
             self.created_at = self.last_updated
             self.id = str(uuid.uuid4())
-            self.eid = self.table.insert(self.to_json())            
+            self.eid = self.table.insert(self.to_dict())            
 
 
     def get_by_eid(self, eid=None):
@@ -185,25 +193,32 @@ class TinyBaseModel(ModelObject):
         reslist = []
         m = self.__class__()
         for elem in res:
-            m.init_from_json(json.dumps(elem))
+            print(str(elem))
+            m.init_from_json(json.dumps(elem, default=pow_json_serializer))
             reslist.append(m)
         return reslist
+    
+    def res_to_json(self, res):
+        """
+            returns a list of results in a json serialized format.
+        """
+        return json.dumps(res, default=pow_json_serializer)
 
     def find(self,*criterion, as_json=False):
         """ Find something given a query or criterion """
         print("  .. find: " + str(*criterion))
         res = self.table.search(*criterion)
         if as_json:
-            return res
+           return self.res_to_json(res)
         else:
             reslist = self.json_result_to_object(res)
             return reslist
 
     def find_all(self, as_json=False):
         """ Find something given a query or criterion and parameters """
-        res =  self.table.all()
+        res =  self.table.all() # returns a list of tinyDB DB-Elements 
         if as_json:
-            return json.dumps(res)
+            return self.res_to_json(res)
         else:
             reslist = self.json_result_to_object(res)
             return reslist
@@ -213,7 +228,7 @@ class TinyBaseModel(ModelObject):
         res = self.table.search(*criterion)
         if as_json:
             if len(res) == 1:
-                return res[0]
+                return self.res_to_json(res[0])
             else:
                 raise Exception("Find_one with more or less than ONE result")
         else:
@@ -227,7 +242,10 @@ class TinyBaseModel(ModelObject):
         """ return the first hit, or None"""
         res = self.find(*criterion, as_json=as_json)
         try:
-            return res[0]
+            if as_json:
+                return self.res_to_json(res[0])
+            else:
+                return self.json_result_to_object(res[0])
         except Exception as err:
             raise Exception(err.msg)
 

@@ -10,5 +10,6 @@ python-editor==1.0.1
 simplejson==3.10.0
 SQLAlchemy==1.1.0b3
 tinydb==3.2.1
+tinydb-serialization==1.0.3
 tornado==4.4.1
 xmltodict==0.10.2

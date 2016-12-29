@@ -17,14 +17,17 @@ def camel_case(name):
     """
     return "".join([x.capitalize() for x in name.split("_")])
 
-def copy_or_pump(src, dest, copy=False, appname=None, sqlite_path=None):
+def copy_or_pump(src, dest, copy=False, appname=None, sqlite_path=None, dbtype=None):
     if not copy:
-        print("    pumping to ----->", dest )
+        print("    pumping through template engine to ----->", dest )
+        
+        
         f = open(src, "r", encoding="utf-8")
         instr = f.read()
         f.close()
         template = tornado.template.Template(instr)
         out = template.generate(  
+                dbtype=dbtype,
                 appname=appname,
                 sqlite_path=sqlite_path,
                 current_date=datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
@@ -37,7 +40,7 @@ def copy_or_pump(src, dest, copy=False, appname=None, sqlite_path=None):
         print("    copying to ----->", dest )
         print("    .. :" + str(shutil.copy( src, dest )))
 
-def generate_app(appname, force=False, outpath=".."):
+def generate_app(appname, force=False, outpath="..", dbtype="sql", testmode=False):
     """ generates a small model with the given modelname
         also sets the right db and table settings and further boilerplate configuration.
         Template engine = tornado.templates
@@ -91,7 +94,8 @@ def generate_app(appname, force=False, outpath=".."):
                     os.path.normpath(os.path.join(str(opath), f)),
                     copy=False,
                     appname=appname,
-                    sqlite_path=sqlite_path
+                    sqlite_path=sqlite_path,
+                    dbtype=dbtype
                     )
             else:
                 copy_or_pump(
@@ -99,20 +103,21 @@ def generate_app(appname, force=False, outpath=".."):
                     os.path.normpath(os.path.join(str(opath), f)),
                     copy=True,
                     appname=appname,
-                    sqlite_path=sqlite_path
+                    sqlite_path=sqlite_path,
+                    dbtype=dbtype
                     )
     print(" DB path: " + sqlite_path)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    
+
     parser.add_argument('-n', "--name", action="store", 
         dest="name", help='-n appname',
         required=True)
 
     parser.add_argument('-p', "--path", action="store", 
         dest="path", help='-p out_path', default="..",
-        required=True)
+        required=False)
 
     parser.add_argument("-f", "--force", 
         action="store_true", dest="force", default=False,
@@ -121,9 +126,14 @@ if __name__ == "__main__":
     #
     # db type
     # 
-    # parser.add_argument('-d', "--db", action="store", 
-    #                     dest="db", help='-d which_db (mongo || tiny || peewee_sqlite) default = tiny',
-    #                     default="tiny", required=True)
+    parser.add_argument('-d', "--db", action="store", 
+                        dest="db", help='-d which_db (mongo || tiny || peewee_sqlite) default = tiny',
+                        default="sql", required=False)
+    
+    parser.add_argument('-t', "--test-mode", action="store_true", 
+                        dest="testmode", help='enables testmode (for internal pow development only.)',
+                        default=False, required=False)
+    
     args = parser.parse_args()
     #
     # show some args
@@ -136,11 +146,11 @@ if __name__ == "__main__":
     print(50*"-")
     print(" Generating your app: " + args.name)
     print(50*"-")
-    generate_app(args.name, args.force, args.path)
+    generate_app(args.name, args.force, args.path, dbtype=args.db, testmode=args.testmode)
 
-    base=os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
-    apppath=os.path.normpath(os.path.join(base, args.name))
-    tpath=os.path.normpath(os.path.join(base, "migrations"))
+    base = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+    apppath = os.path.normpath(os.path.join(base, args.name))
+    tpath = os.path.normpath(os.path.join(base, "migrations"))
     # make the versions dir
     os.makedirs(os.path.normpath(os.path.join(tpath, "versions")), exist_ok=True)
 
