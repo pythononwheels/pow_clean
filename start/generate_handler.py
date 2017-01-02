@@ -30,7 +30,7 @@ def generate_handler(handler_name, model_type, appname=None):
     # create the controller
     #
     ofile = open(os.path.join(templates["handler_path"], handler_name+".py"), "wb")
-    res = loader.load("handler_template.py").generate( 
+    res = loader.load("rest_handler_template.py").generate( 
         handler_name=handler_name, 
         handler_class_name=handler_class_name,
         handler_model_class_name=handler_class_name,
