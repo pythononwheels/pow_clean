@@ -29,14 +29,15 @@ class ThanksHandler(BaseHandler2):
     
 # if you DON't specify a method, the standard HTTP verb method (e.g. get(), put() will be called)
 @app.add_route2("/index/([0-9]+)*")
-@app.add_route2("/", pos=-1)
+@app.add_route2("/", pos=-2)
 class IndexdHandler(BaseHandler2):
     def get(self, index=None):
         print("  index:" + str(index))
         self.render("index.tmpl")
 
 # this will be the last route 
-@app.add_route2(".*", pos=-2)
+@app.add_route2(".*", pos=-3)
 class ErrorHandler(BaseHandler2):
     def get(self):
         return self.render("404.tmpl", url=self.request.uri)
+

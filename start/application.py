@@ -240,12 +240,12 @@ class Application(tornado.web.Application):
                     #("put", r"/" + action + r"/(?P<id>.+)/?", "update"),
                     #("post", r"/" + action + r"/?", "create"),
                     #("delete", r"/" + action  + r"/(?P<id>.+)/?", "delete")
-                    ( r"/" + action + r"/" + r"/(?P<id>.+)/edit/?" , { "get" : "edit", "params" : ["id"] }),
-                    ( r"/" + action + r"/" + r"/page/(?P<page>.+)/?", { "get" : "page", "params" : ["page"] }),
-                    ( r"/" + action + r"/" + r"/new/?", {"get" : "new"}),
-                    ( r"/" + action + r"/" + r"/(?P<id>.+)/?", 
+                    ( r"/" + action + r"/(?P<id>.+)/edit/?" , { "get" : "edit", "params" : ["id"] }),
+                    ( r"/" + action + r"/page/(?P<page>.+)/?", { "get" : "page", "params" : ["page"] }),
+                    ( r"/" + action + r"/new/?", {"get" : "new"}),
+                    ( r"/" + action + r"/(?P<id>.+)/?", 
                         { "get" : "show" , "put" : "update", "delete" : "delete", "params" : ["id"]} ),
-                    ( r"/" + action + r"/" + r"/?", { "get" : "list", "post" : "create" })                
+                    ( r"/" + action + r"/?", { "get" : "list", "post" : "create" })                
                 ]
                 
             

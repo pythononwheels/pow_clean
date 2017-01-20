@@ -101,9 +101,10 @@ class BaseHandler2(tornado.web.RequestHandler):
         print(" ------------- GET / BaseHandler2")
         print("  .. GET params : " + str(params))
         print("  .. GET args : " + str(args))
-        print("  .. GET slef.dispatch_kwargs : " + str(self.dispatch_kwargs))
+        print("  .. GET self.dispatch_kwargs : " + str(self.dispatch_kwargs))
         if self.dispatch_kwargs.get("get", None):
             try:
+                print(" .. Trying to call handler method: " + self.dispatch_kwargs.get("get") )
                 f=getattr(self, self.dispatch_kwargs.get("get"))
                 print("  .. trying to call: " + str(f))
                 if callable(f):
