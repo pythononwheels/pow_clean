@@ -1,12 +1,12 @@
-from testapp.powlib import pluralize
+from {{appname}}.powlib import pluralize
 import datetime
 from cerberus import Validator
 import xmltodict
 import simplejson as json
 import datetime, decimal
-from testapp.config import myapp
-from testapp.powlib import merge_two_dicts
-from testapp.encoders import pow_json_serializer
+from {{appname}}.config import myapp
+from {{appname}}.powlib import merge_two_dicts
+from {{appname}}.encoders import pow_json_serializer
 
 class ModelObject():
     """
