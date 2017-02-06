@@ -1,7 +1,7 @@
 #
 # TinyDB Model:  User
 #
-from testapp.models.tinydb.basemodel import TinyBaseModel
+from {{appname}}.models.tinydb.basemodel import TinyBaseModel
 
 class User(TinyBaseModel):
 

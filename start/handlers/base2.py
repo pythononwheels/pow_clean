@@ -49,24 +49,7 @@ class BaseHandler2(tornado.web.RequestHandler):
             before_handler()
         self.format = None
 
-    def get_current_user(self):
-        """
-            very simple implementation. 
-            change to you own needs here or in your own subclassed base handler.
-
-        """
-        if myapp["enable_authentication"]:
-            # try to find the user
-            user_id = self.get_secure_cookie("user_id")
-            if not user_id: return None
-            u=User()
-            u=u.find_one(User.id==user_id)
-            return u
-        else:
-            # if authentication is disabled return a dummy guest user
-            u=User()
-            u.login="pow_guest"
-            return None
+    
 
 
     def get_accept_format(self):

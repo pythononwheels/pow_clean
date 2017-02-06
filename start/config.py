@@ -53,21 +53,24 @@ database = {
         "host"      :   None,       
         "port"      :   None,   
         "user"      :   None,
-        "passwd"    :   None
+        "passwd"    :   None,
+        "enabled"   :   False
     },
     "tinydb" : {
         "dbname"    :   r"tiny.db",   # better leave the r to enable absolute paths with backslashes 
         "host"      :   None,       
         "port"      :   None,   
         "user"      :   None,
-        "passwd"    :   None
+        "passwd"    :   None,
+        "enabled"   :   True
     },
     "elastic" : {
         "dbname"    :   "testdb",   # == elasticsearch index 
         "hosts"     :   ["localhost"],       
         "port"      :   9200,   
         "user"      :   None,
-        "passwd"    :   None
+        "passwd"    :   None,
+        "enabled"   :   False
     }
 }
 

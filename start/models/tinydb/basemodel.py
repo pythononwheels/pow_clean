@@ -1,16 +1,16 @@
 from tinydb import TinyDB, Query, where
-from testapp.powlib import pluralize
+from {{appname}}.powlib import pluralize
 import datetime
 from cerberus import Validator
 import xmltodict
 import simplejson as json
 import datetime, decimal
-from testapp.config import myapp
-from testapp.database.tinydblib import tinydb
-from testapp.powlib import merge_two_dicts
-from testapp.models.modelobject import ModelObject
+from {{appname}}.config import myapp
+from {{appname}}.database.tinydblib import tinydb
+from {{appname}}.powlib import merge_two_dicts
+from {{appname}}.models.modelobject import ModelObject
 import uuid
-from testapp.encoders import pow_json_serializer
+from {{appname}}.encoders import pow_json_serializer
 
 #print ('importing module %s' % __name__)
 class TinyBaseModel(ModelObject):
