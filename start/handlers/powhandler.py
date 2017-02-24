@@ -2,7 +2,7 @@ import tornado.web
 import tornado.escape
 import json
 from {{appname}}.config import myapp 
-from {{appname}}.handlers.base2 import BaseHandler2
+from {{appname}}.handlers.base import BaseHandler
 
 class PowHandler(BaseHandler2):
     """

@@ -134,67 +134,12 @@ class Application(tornado.web.Application):
         for elem in routelist:
             print('{0:<20} {1:<30} '.format(elem[0], str(elem[1])))
 
-    #
-    # the RESTful route decorator
-    #
-    def add_rest_routes(self, route, api=None, pos=0):
-        """
-            cls is the class that will get the RESTful routes
-            it is automatically the decorated class
-            self in this decorator is Application
-            api will insert the given api version into the route (e.g. route=post, api=1.0)
-            /post/1.0/**all restroutes follow this pattern
-            1  GET    /items            #=> index
-            2  GET    /items/1          #=> show
-            3  GET    /items/new        #=> new
-            4  GET    /items/1/edit     #=> edit
-            5  GET    /items/page/0     #=> pagination     
-            6  PUT    /items/1          #=> update
-            7  POST   /items            #=> create
-            8  DELETE /items/1          #=> destroy
-        """
-        def decorator(cls):
-            # parent is the parent class of the relation
-            cls_name = cls.__name__.lower()
-            #print(cls_name)
-            # default REST is the following pattern:
-            # (r"/post/(?P<param1>[^\/]+)/?(?P<param2>[^\/]+)?/?(?P<param3>[^\/]+)?", PostHandler),
-            action=""
-            # if cls_name.endswith("handler"):
-            #     action=action[:-7]
-            # else:
-            #     action = cls_name
-            # if route:
-            action=route
-
-            r=r"/"+action+r"/(?P<param1>[^\/]+)/?(?P<param2>[^\/]+)?/?(?P<param3>[^\/]+)?"
-            if api:
-                # render the given api in the route URL
-                r=r"/"+action+r"/"+str(api)+r"/(?P<param1>[^\/]+)/?(?P<param2>[^\/]+)?/?(?P<param3>[^\/]+)?"
-            
-            #print("added the following routes: " + r)
-            handlers=getattr(self.__class__, "handlers", None)
-            handlers.append((r,cls))
-            
-            # use the positioned handlers
-            handlers_tmp=getattr(self.__class__, "handlers_tmp", None)
-            handlers_tmp.append(((r,cls),pos))
-
-            r=r"/"+action+r"/*"
-            #print("added the following routes: " + r)
-            handlers.append((r,cls))
-            handlers_tmp.append(((r,cls),pos))
-            #print("handlers: " + str(self.handlers))
-            print("ROUTING: added RESTful routes for: " + cls.__name__ +  " as /" + action)
-            #print(dir())
-            return cls
-        return decorator
     
     #
     # the RESTful route decorator v2
     # with dedicated routes. One per default action
     #
-    def add_rest_routes2(self, route, api=None, pos=0):
+    def add_rest_routes(self, route, api=None, pos=0):
         """
             cls is the class that will get the RESTful routes
             it is automatically the decorated class
@@ -232,14 +177,6 @@ class Application(tornado.web.Application):
             else:
                 routes = [
                     # tuple (http_method, route, { http_method : method_to_call_in_handler, .. })
-                    #("get", r"/" + action + r"/(?P<id>.+)/?", "show"),
-                    #("get", r"/" + action + r"/?", "list"),
-                    #("get", r"/" + action + r"/(?P<id>.+)/edit/?" , "edit"),
-                    #("get", r"/" + action + r"/new/?", "new"),
-                    #("get", r"/" + action + r"/page/(?P<id>.+)/?", "page"),
-                    #("put", r"/" + action + r"/(?P<id>.+)/?", "update"),
-                    #("post", r"/" + action + r"/?", "create"),
-                    #("delete", r"/" + action  + r"/(?P<id>.+)/?", "delete")
                     ( r"/" + action + r"/(?P<id>.+)/edit/?" , { "get" : "edit", "params" : ["id"] }),
                     ( r"/" + action + r"/page/(?P<page>.+)/?", { "get" : "page", "params" : ["page"] }),
                     ( r"/" + action + r"/new/?", {"get" : "new"}),
@@ -259,43 +196,12 @@ class Application(tornado.web.Application):
             return cls
         return decorator
 
-    #
-    # the direct route decorator
-    #
-    #todo
-    def add_route(self, route, method=None, verbs=["get"], pos=0):
-        """
-            cls is the class that will get the given route / API route
-            cls is automatically the decorated class
-            self in this decorator is Application
-            this will take a 1:1 raw tornado route
-        """
-        def decorator(cls):
-            # parent is the parent class of the relation
-            cls_name = cls.__name__.lower()
-            handlers=getattr(self.__class__, "handlers", None)
-            handlers_tmp=getattr(self.__class__, "handlers_tmp", None)
-            route_tupel= (route,cls, {"method":method, "verbs" : verbs})
-            handlers_tmp.append((route_tupel,pos))
-            #print("added the following routes: " + route_tupel)
-            if pos < 0:
-                if pos == -1:
-                    handlers.append(route_tupel)
-                else:
-                    handlers.insert(len(handlers)-(pos+1),route_tupel)
-            elif pos >= 0:
-                handlers.insert(pos,route_tupel)
-            
-            #print("handlers: " + str(self.handlers))
-            print("ROUTING: added route for: " + cls.__name__ +  ": " + route)
-            return cls
-        return decorator
     
     #
     # the direct route decorator
     #
     #todo
-    def add_route2(self, route, dispatch={}, pos=0):
+    def add_route(self, route, dispatch={}, pos=0):
         """
             cls is the class that will get the given route / API route
             cls is automatically the decorated class

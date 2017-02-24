@@ -2,44 +2,24 @@ import tornado.web
 import tornado.escape
 import json
 from {{appname}}.config import myapp 
-from {{appname}}.models.sql.user import User
-#
-#
-# Base PoW handler (Controller)
-# automatically adds RESTful routing:
-# 1  GET    /items            #=> index
-# 2  GET    /items/1          #=> show
-# 3  GET    /items/new        #=> new
-# 4  GET    /items/1/edit     #=> edit
-# 5  GET    /items/page/0     #=> pagination     
-# 6  PUT    /items/1          #=> update
-# 7  POST   /items            #=> create
-# 8  DELETE /items/1          #=> destroy
+from {{appname}}.models.{{dbtype}}.user import User
 
-# you will also be able to add custom routes (Tornado routes)
-# or handle POUPs (Plain Old Url ParameterS ;)
-# like this: /post/search?name=pythononwheels&email=info@pythononwheels.org
-# 
+
 
 class BaseHandler(tornado.web.RequestHandler):
 
     def initialize(self, *args, **kwargs):
+        """
+            receives the URL dict parameter.
+            For PoW RESTroutes this looks like this:
+            { "get" : "some_method" }
+            { "http_verb" : "method_to_call", ...}
+        """
         print("  .. in initialize")
         print("  .. .. args: " + str(args))
         print("  .. .. kwargs: " + str(kwargs))
-        if "method" in kwargs.keys():
-            # direct route to a method.
-            self.dispatch = {
-                "method"    :   kwargs.get("method", None),
-                "verbs"     :   kwargs.get("verbs", [])
-            }
-            print(" .. direct route." + str(self.dispatch))
-        else:
-            self.dispatch = {
-                "method"    :   "rest",
-                "verbs"     :   []
-            }
-           
+        self.dispatch_kwargs = kwargs
+        self.dispatch_args = args
 
         
     def prepare(self):
@@ -54,9 +34,9 @@ class BaseHandler(tornado.web.RequestHandler):
         print(" Mehtod: " + self.request.method)
         print(" URI: " + self.uri)
         print(" Handler: " + self.__class__.__name__)
+        # path = anything before url-parameters
         self.path = self.request.uri.split('?')[0]
-        self.action = self.path.split('/')[-1]
-        self.default_methods = {}
+        print(" path: " + self.path)
         #
         # You can use the before_handler in a local controller to
         # process your own prepare stuff.
@@ -69,143 +49,70 @@ class BaseHandler(tornado.web.RequestHandler):
             before_handler()
         self.format = None
 
-    def get_current_user(self):
-        """
-            very simple implementation. 
-            change to you own needs here or in your own subclassed base handler.
+    
 
+
+    def get_accept_format(self):
         """
-        if myapp["enable_authentication"]:
-            # try to find the user
-            user_id = self.get_secure_cookie("blogdemo_user")
-            if not user_id: return None
-            u=User()
-            u=u.find_one(User.id==user_id)
-            return u
+            format is either added as .format to the path
+            or default_format
+            example: /post/12.json (will return json)
+        """
+
+        if len (self.path.split(".")) > 1:
+            format = self.path.split(".")[-1]
         else:
-            # if authentication is disabled return a dummy guest user
-            u=User()
-            u.login="pow_guest"
-            return u
-
-
-    def get_accept_format(self, format_param):
-
-        if not format_param:
-            return myapp["default_format"]
-        if format_param in myapp["supported_formats"]:
-            return format_param
+            format = myapp["default_format"]
+        
+        if format in myapp["supported_formats"]:
+            return format
         else:
             print("format error")
             return self.error(
                     message="Format not supported. (see data.format)",
                     data={
-                        "format was" : format_param,
+                        "format was" : format,
                         "supported_formats" : myapp["supported_formats"]
                     }
-                )
-
-    def dispatch_rest_route(self, **params):
-        # GET    /items         #=> index    CASE 1
-        # GET    /items/1       #=> show     CASE 2
-        # GET    /items/1/edit  #=> edit     CASE 3 
-        # GET    /items/new     #=> new      CASE 4 
-        # GET    /items/page/0  #=> page     CASE 5
-        # GET    /items/search  #=> search   CASE 6
-        
-        # the last parameter may always be a format specification
-        # (json, xml, csv, html)
-        print("Get Parameters: " + str(params))
-        if params == {}:
-            # if there are no params we call index CASE 1
-            self.format=myapp["default_format"]
-            #return getattr(self, "index" + "_" + format)()
-            return self.index()
-        try:
-            p1 = params.get("param1", None)
-            int(p1)
-            # if param1 is an integer and param2 is == "edit" we call edit(id) CASE 3
-            if str(params.get("param2", None)).lower() == "edit":
-                self.format = self.get_accept_format(params.get("param3"))
-                return self.edit(p1)
-            #
-            # if param1 is an Int we treat it as an ID and call show(id) CASE 2
-            #
-            self.format = self.get_accept_format(params.get("param2"))
-            return self.show(p1)
-        except ValueError:
-            #
-            # if param 1 is new we call new (return the new html form) CASE 4
-            # if param 1 is search we call new 
-            #       (you have to handle the URL parameters yourself) CASE 6
-            # or if param2 is given we take this as the result format.
-            #
-            if str(params.get("param1", None)).lower() not in ["new", "search", "page"]:
-                #it is a format or an error
-                self.format = self.get_accept_format(params.get("param1"))
-                print("self format is:" +str(self.format))
-                return self.index()
-            if str(params.get("param1", None)).lower() == "new":
-                self.format = self.get_accept_format(params.get("param2"))
-                return self.new()
-            elif str(params.get("param1", None)).lower() == "search":
-                self.format = self.get_accept_format(params.get("param2"))
-                return self.new()
-
-            #
-            # if param 1 is page (and param2 is an int) we call page (paginated list) CASE 5
-            elif str(params.get("param1", None)).lower() == "page":
-                p2=params.get("param2", None)
-                try:
-                    int(p2)
-                    self.format = self.get_accept_format(params.get("param3"))
-                    self.page(int(p2))
-                except:
-                    return self.error(500, params, "for page the next parameter page_num must be an int. Example: /page/0")        
-            elif str(params.get("param1", None)) in myapp["supported_formats"]:
-                # someone wanted the index action with a special format
-                # /post/json => index_json
-                self.format = self.get_accept_format(params.get("param1", None))
-                self.index()
+            )
                 
-        return self.error(500, params, "You didnt match any of the supported REST routes ....")
-
     #
     # GET
     #
+    # routes have the form: 
+    # ( r"/" + action + r"/" + str(api) + r"/(?P<id>.+)/edit/?" , { "get" : "edit", "params" : ["id"] }),
+    # or
+    # @app.add_route2("/thanks/*", dispatch={"get": "_get"} )
     def get(self, *args, **params):
         #url_params=self.get_arguments("id")
-        print("  .. GET params : " + str(params))
-        print("  .. GET args : " + str(args))
-        if self.dispatch["method"] == "rest":
-            # route a rest_route: @app.add_rest_route("base_name")
-            return self.dispatch_rest_route(**params)
-        else:
-            # route a direct route: @app.add_route("/regex/", method="name", verbs=["get"])
-            if "get" in self.dispatch["verbs"]:
-                # only proceed if this route is valid for this request verb
-                try:
-                    f=getattr(self, self.dispatch["method"])
-                    print(str(f))
-                    if callable(f):
-                        # call the given method
-                        return f(*args, **params)
-                except TypeError:
-                    self.application.log_event(self, 
-                        message="""method was None. But you also did not implement
-                        one of the to standard HTTP methods (get,put ...)""")
-                    self.error(
+        print(" ----> GET / BaseHandler2")
+        print("  .. params : " + str(params))
+        print("  .. args : " + str(args))
+        print("  .. self.dispatch_kwargs : " + str(self.dispatch_kwargs))
+        if self.dispatch_kwargs.get("get", None):
+            try:
+                print(" .. Trying to call handler method: " + self.dispatch_kwargs.get("get") )
+                f=getattr(self, self.dispatch_kwargs.get("get"))
+                print("  .. trying to call: " + str(f))
+                if callable(f):
+                    # call the given method
+                    return f(*args, **params)
+            except TypeError:
+                self.application.log_event(self, 
                     message="""method was None. But you also did not implement
-                        one of the to standard HTTP methods (get,put ...)""",
-                    data = { "request" : str(self.request )},
-                    http_code = 405
-                    )
-            else:
+                    one of the to standard HTTP methods (get,put ...)""")
                 self.error(
-                    message=" HTTP Method: GET not supported for this route. ",
-                    data = { "request" : str(self.request )},
-                    http_code = 405
-                    )
+                message="""method was None. But you also did not implement
+                    one of the to standard HTTP methods (get,put ...)""",
+                data = { "request" : str(self.request )},
+                http_code = 405
+                )
+        else:
+            self.error(
+                message=" HTTP Method: GET not supported for this route. ",
+                data = { "request" : str(self.request )},
+                http_code = 405
+                )
 
         self.write(params)
     
@@ -213,6 +120,11 @@ class BaseHandler(tornado.web.RequestHandler):
     # POST   /items     #=> create
     #
     def post(self):
+        print(" ---> PUT / BaseHandler")
+        print("  .. params : " + str(params))
+        print("  .. args : " + str(args))
+        print("  .. self.dispatch_kwargs : " + str(self.dispatch_kwargs))
+        if self.dispatch_kwargs.get("get", None):
         data = tornado.escape.json_decode(self.request.body)
         return self.create(data)
 
@@ -251,11 +163,12 @@ class BaseHandler(tornado.web.RequestHandler):
             for other formats you have to define an encoder in config.py
             (see json as an example)
         """
+        self.set_status(http_code)
         if not format:
             format = self.format
         if not format:
             format = myapp["default_format"]
-        self.set_status(http_code)
+        
         if encoder:
             encoder = encoder
         else:
