@@ -11,9 +11,10 @@ class BaseHandler(tornado.web.RequestHandler):
     def initialize(self, *args, **kwargs):
         """
             receives the URL dict parameter.
-            For PoW RESTroutes this looks like this:
+            For PoW RESTroutes this looks like this: (Kwargs)
             { "get" : "some_method" }
             { "http_verb" : "method_to_call", ...}
+            { "params" : ["id", "name", ... ]}
         """
         print("  .. in initialize")
         print("  .. .. args: " + str(args))
