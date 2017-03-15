@@ -21,7 +21,7 @@ class BaseHandler(tornado.web.RequestHandler):
         print("  .. .. kwargs: " + str(kwargs))
         self.dispatch_kwargs = kwargs
         self.dispatch_args = args
-
+        
         
     def prepare(self):
         """
@@ -92,6 +92,11 @@ class BaseHandler(tornado.web.RequestHandler):
         print("  .. self.dispatch_kwargs : " + str(self.dispatch_kwargs))
         if self.dispatch_kwargs.get("get", None):
             try:
+                # this is the view that will be rendered by success or error,
+                # if the format is .html
+                # rule: handlerName_methodName
+                self.view = self.dispatch_kwargs.get("get", None):
+
                 print(" .. Trying to call handler method: " + self.dispatch_kwargs.get("get") )
                 f=getattr(self, self.dispatch_kwargs.get("get"))
                 print("  .. trying to call: " + str(f))
@@ -169,7 +174,13 @@ class BaseHandler(tornado.web.RequestHandler):
             format = self.format
         if not format:
             format = myapp["default_format"]
-        
+        if format.lower() == "html":
+            # special case where we render the classical html templates
+            viewname = self.__class__.__name__ + "_" + self.view
+            if self.view not None:
+                self.render( self.__class__.__name__ + "_" + self.view, data=data, message=message )
+            else:
+                self.error(message="Sorry, View: " + viewname +  " can not be found.", format=format, data=data)
         if encoder:
             encoder = encoder
         else:
@@ -191,6 +202,8 @@ class BaseHandler(tornado.web.RequestHandler):
             format = self.format
         if not format:
             format = myapp["default_format"]
+        if format.lower() == "html":
+            self.render("error.tmpl", data=data, message=message)
         if encoder:
             encoder = encoder
         else:
