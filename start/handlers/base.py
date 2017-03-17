@@ -95,7 +95,7 @@ class BaseHandler(tornado.web.RequestHandler):
                 # this is the view that will be rendered by success or error,
                 # if the format is .html
                 # rule: handlerName_methodName
-                self.view = self.dispatch_kwargs.get("get", None):
+                self.view = self.dispatch_kwargs.get("get", None)
 
                 print(" .. Trying to call handler method: " + self.dispatch_kwargs.get("get") )
                 f=getattr(self, self.dispatch_kwargs.get("get"))
@@ -131,6 +131,11 @@ class BaseHandler(tornado.web.RequestHandler):
         print("  .. args : " + str(args))
         print("  .. self.dispatch_kwargs : " + str(self.dispatch_kwargs))
         if self.dispatch_kwargs.get("get", None):
+             self.error(
+                message=" HTTP Method: GET not supported for this route. ",
+                data = { "request" : str(self.request )},
+                http_code = 405
+                )
         data = tornado.escape.json_decode(self.request.body)
         return self.create(data)
 
@@ -177,7 +182,7 @@ class BaseHandler(tornado.web.RequestHandler):
         if format.lower() == "html":
             # special case where we render the classical html templates
             viewname = self.__class__.__name__ + "_" + self.view
-            if self.view not None:
+            if self.view is not None:
                 self.render( self.__class__.__name__ + "_" + self.view, data=data, message=message )
             else:
                 self.error(message="Sorry, View: " + viewname +  " can not be found.", format=format, data=data)
@@ -196,6 +201,8 @@ class BaseHandler(tornado.web.RequestHandler):
 
     def error(self, message=None, data=None, succ=None, prev=None,
         http_code=500, format=None, encoder=None):
+        
+        self.application.log_event(self, message=message)
         self.set_status(http_code)
         
         if not format:

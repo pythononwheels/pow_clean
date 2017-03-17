@@ -11,14 +11,14 @@ from {{appname}}.application import app
 
 #  ( r"/" + action + r"/" + r"/(?P<id>.+)/edit/?" , { "get" : "edit", "params" : ["id"] }),
 @app.add_route("/dash/*")
-class DashboardHandler(BaseHandler2):
+class DashboardHandler(BaseHandler):
     def get(self):
         self.render("dash.tmpl")
 
 # if you specify a method, this method will be called for this route
 @app.add_route("/thanks/*", dispatch={"get": "_get"} )
 @app.add_route("/thanks/([0-9]+)*", dispatch={"get": "testme"})
-class ThanksHandler(BaseHandler2):
+class ThanksHandler(BaseHandler):
     def _get(self, index=0 ):
         print("  .. in _get: index = " + str(index))
         self.render("thanks.tmpl", index=index)
@@ -30,14 +30,14 @@ class ThanksHandler(BaseHandler2):
 # if you DON't specify a method, the standard HTTP verb method (e.g. get(), put() will be called)
 @app.add_route("/index/([0-9]+)*")
 @app.add_route("/", pos=-2)
-class IndexdHandler(BaseHandler2):
+class IndexdHandler(BaseHandler):
     def get(self, index=None):
         print("  index:" + str(index))
         self.render("index.tmpl")
 
 # this will be the last route 
 @app.add_route(".*", pos=-3)
-class ErrorHandler(BaseHandler2):
+class ErrorHandler(BaseHandler):
     def get(self):
         return self.render("404.tmpl", url=self.request.uri)
 

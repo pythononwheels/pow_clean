@@ -34,12 +34,12 @@ class Application(tornado.web.Application):
         #self.handlers+=h
 
         # use the absolute positioning routing table
-        htmp=getattr(self.__class__, "handlers_tmp", None)
+        #htmp=getattr(self.__class__, "handlers_tmp", None)
         def get_key(item):
             return item[1]
         #print(list(reversed(sorted(htmp, key=get_key))))
-        self.show_positioned_routes( list(reversed(sorted(htmp, key=get_key))) )
-        hordered=[x[0] for x in reversed(sorted(htmp, key=get_key))]
+        self.show_positioned_routes( list(reversed(sorted(h, key=get_key))) )
+        hordered=[x[0] for x in reversed(sorted(h, key=get_key))]
         #print(str(hordered))
         self.handlers+=hordered
 
@@ -187,10 +187,9 @@ class Application(tornado.web.Application):
                 
             
             #print("added the following routes: " + r)
-            handlers=getattr(self.__class__, "handlers_tmp", None)
+            handlers=getattr(self.__class__, "handlers", None)
             for elem in routes:
                 handlers.append( ((elem[0],cls, elem[1]), pos) ) 
-
             print("ROUTING: added RESTful routes for: " + cls.__name__ +  " as /" + action)
             #print(dir())
             return cls
