@@ -19,7 +19,7 @@ class DashboardHandler(BaseHandler):
 @app.add_route("/thanks/*", dispatch={"get": "_get"} )
 @app.add_route("/thanks/([0-9]+)*", dispatch={"get": "testme"})
 class ThanksHandler(BaseHandler):
-    def _get(self, index=0 ):
+    def _get(self):
         print("  .. in _get: index = " + str(index))
         self.render("thanks.tmpl", index=index)
 

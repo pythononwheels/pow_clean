@@ -23,26 +23,29 @@ def generate_model(model_name=None, model_type=None, appname=None):
     #
     # set some attributes
     #
-    loader = template.Loader(templates["stubs_path"])
-    model_class_name = camel_case(model_name)
-    print("model_class_name: " + model_class_name)
-    model_name_plural = pluralize(model_name)
-    print("model_name_plural: " + model_name_plural)
-    #
-    # create the model
-    #
-    ofilePath = os.path.join(templates["model_path"], model_type)
-    ofile = open(os.path.join(ofilePath, model_name+".py"), "wb")
-    res = loader.load(model_type + "_model_template.py").generate( 
-        model_name=model_name, 
-        model_name_plural=model_name_plural, 
-        model_class_name=model_class_name,
-        appname=appname,
-        model_type=model_type
-        )
-    ofile.write(res)
-    ofile.close()
-    return
+    try:
+        loader = template.Loader(templates["stubs_path"])
+        model_class_name = camel_case(model_name)
+        print("model_class_name: " + model_class_name)
+        model_name_plural = pluralize(model_name)
+        print("model_name_plural: " + model_name_plural)
+        #
+        # create the model
+        #
+        ofilePath = os.path.join(templates["model_path"], model_type)
+        ofile = open(os.path.join(ofilePath, model_name+".py"), "wb")
+        res = loader.load(model_type + "_model_template.py").generate( 
+            model_name=model_name, 
+            model_name_plural=model_name_plural, 
+            model_class_name=model_class_name,
+            appname=appname,
+            model_type=model_type
+            )
+        ofile.write(res)
+        ofile.close()
+    except:
+        return False
+    return True
 
 
 if __name__ == "__main__":

@@ -34,7 +34,7 @@ def main(stdout=False):
     
     formatter = myapp["logformat"]
 
-    log_handler = logging.FileHandler(myapp["logfile"])
+    log_handler = logging.FileHandler(os.path.abspath(os.path.normpath(myapp["logfile"])))
     #log_handler.setLevel(db_handler_log_level)
     log_handler.setFormatter(formatter)
 

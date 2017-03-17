@@ -9,6 +9,7 @@ import sys
 import datetime
 import shutil
 from pathlib import Path
+import uuid
 
 def camel_case(name):
     """
@@ -17,7 +18,8 @@ def camel_case(name):
     """
     return "".join([x.capitalize() for x in name.split("_")])
 
-def copy_or_pump(src, dest, copy=False, appname=None, sqlite_path=None, dbtype=None):
+def copy_or_pump(src, dest, copy=False, appname=None, sqlite_path=None, 
+            dbtype=None, cookie_secret=str(uuid.uuid4())):
     """
         just copy files or pump them through the template engine before copying to out dir
     """
@@ -31,7 +33,8 @@ def copy_or_pump(src, dest, copy=False, appname=None, sqlite_path=None, dbtype=N
                 dbtype=dbtype,
                 appname=appname,
                 sqlite_path=sqlite_path,
-                current_date=datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+                current_date=datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S"),
+                cookie_secret=cookie_secret
                 )
         f = open(dest, "w", encoding="utf-8")
         f.write(out.decode("unicode_escape"))
@@ -76,6 +79,8 @@ def generate_app(appname, force=False, outpath="..", dbtype="sql", testmode=Fals
         sqlite_path="/"+sqlite_path
     else:
         sqlite_path="Unknown system platform (" + sys.platform + "). Please set sqlite connection string yourself"
+    
+    cookie_secret = uuid.uuid4()
 
     for dirname, dirs, files in os.walk(root):
         for f in files:
@@ -102,7 +107,8 @@ def generate_app(appname, force=False, outpath="..", dbtype="sql", testmode=Fals
                                 copy=False,
                                 appname=appname,
                                 sqlite_path=sqlite_path,
-                                dbtype=dbtype
+                                dbtype=dbtype,
+                                cookie_secret=str(cookie_secret)
                                 )
                     else:
                         copy_or_pump(
@@ -111,7 +117,8 @@ def generate_app(appname, force=False, outpath="..", dbtype="sql", testmode=Fals
                             copy=True,
                             appname=appname,
                             sqlite_path=sqlite_path,
-                            dbtype=dbtype
+                            dbtype=dbtype,
+                            cookie_secret=str(cookie_secret)
                             )
             else:
                 print("skipped in testmode: " + str(f))

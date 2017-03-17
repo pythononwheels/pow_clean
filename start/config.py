@@ -18,7 +18,7 @@ server_settings = {
     "login_url"         :   "/login",
     "xsrf_cookies"      :   True,
     #"log_function"      :   you can give your own log function here.
-    "cookie_secret"     :   "254f2254-6bb0-1312-1104-3a0786ce285e"
+    "cookie_secret"     :   "{{cookie_secret}}"
 }
 
 templates = {
