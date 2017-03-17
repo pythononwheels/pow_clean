@@ -46,7 +46,7 @@ def generate_app(appname, force=False, outpath="..", dbtype="sql", testmode=Fals
         also sets the right db and table settings and further boilerplate configuration.
         Template engine = tornado.templates
     """    
-    print("  generating app: " + str(appname))
+    print("  generating app:" + str(appname))
     #base=os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
     base=os.path.normpath(outpath)
 
@@ -60,7 +60,9 @@ def generate_app(appname, force=False, outpath="..", dbtype="sql", testmode=Fals
     
     os.makedirs(outdir, exist_ok=True)
     template_exts = [".py", ".tmpl"]
-    exclude_dirs = ["static", "stubs", "views", "stuff"]
+    # excluded from template processing.
+    exclude_dirs = ["static", "stubs", "views"]
+    skip_dirs= ["stuff", "werkzeug"]
     exclude_for_testmode=["alembic.ini", "sql.sqlite", "tiny.db", "config.py"]
     #
     # walk the root (/pow/start)
@@ -87,27 +89,30 @@ def generate_app(appname, force=False, outpath="..", dbtype="sql", testmode=Fals
                 filename, file_extension = os.path.splitext(f)
                 print("  filename: " + filename)
                 print("  file ext: " + file_extension)
-                
-                if not os.path.exists(str(opath)):
-                    os.makedirs(str(opath), exist_ok=True)
-                if (file_extension in template_exts) and not (path.parts[-1] in exclude_dirs):
+                print("  path.parts-1: " + path.parts[-1])
+                if path.parts[-1] in skip_dirs:
+                    print("skipped: " + str(f))    
+                else:
+                    if not os.path.exists(str(opath)):
+                        os.makedirs(str(opath), exist_ok=True)
+                    if (file_extension in template_exts) and not (path.parts[-1] in exclude_dirs):
+                            copy_or_pump(
+                                os.path.normpath(os.path.join(dirname, f)),
+                                os.path.normpath(os.path.join(str(opath), f)),
+                                copy=False,
+                                appname=appname,
+                                sqlite_path=sqlite_path,
+                                dbtype=dbtype
+                                )
+                    else:
                         copy_or_pump(
                             os.path.normpath(os.path.join(dirname, f)),
                             os.path.normpath(os.path.join(str(opath), f)),
-                            copy=False,
+                            copy=True,
                             appname=appname,
                             sqlite_path=sqlite_path,
                             dbtype=dbtype
                             )
-                else:
-                    copy_or_pump(
-                        os.path.normpath(os.path.join(dirname, f)),
-                        os.path.normpath(os.path.join(str(opath), f)),
-                        copy=True,
-                        appname=appname,
-                        sqlite_path=sqlite_path,
-                        dbtype=dbtype
-                        )
             else:
                 print("skipped in testmode: " + str(f))
     print(" DB path: " + sqlite_path)

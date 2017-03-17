@@ -51,7 +51,7 @@ if __name__ == "__main__":
                         dest="name", help='-n modelname',
                         required=True)
     parser.add_argument('-t', "--type", action="store", 
-                        dest="type", help='-n modelname',
+                        dest="type", help='-t dbtype   -> Example: -t sql  OR -t tinydb ...',
                         default="sql", required=True)
     #
     # db type

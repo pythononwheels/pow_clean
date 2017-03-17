@@ -54,7 +54,7 @@ database = {
         "port"      :   None,   
         "user"      :   None,
         "passwd"    :   None,
-        "enabled"   :   False
+        "enabled"   :   True
     },
     "tinydb" : {
         "dbname"    :   r"tiny.db",   # better leave the r to enable absolute paths with backslashes 
@@ -62,7 +62,7 @@ database = {
         "port"      :   None,   
         "user"      :   None,
         "passwd"    :   None,
-        "enabled"   :   True
+        "enabled"   :   False
     },
     "elastic" : {
         "dbname"    :   "testdb",   # == elasticsearch index 

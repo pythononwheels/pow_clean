@@ -85,7 +85,7 @@ class Application(tornado.web.Application):
             imports all handlers to execue the @add_routes decorator.
         """
         import os
-        exclude_list=["base"]
+        exclude_list=["base", "powhandler"]
 
         #
         # the list of handlers (excluding base. Add more you dont want
@@ -200,7 +200,6 @@ class Application(tornado.web.Application):
     #
     # the direct route decorator
     #
-    #todo
     def add_route(self, route, dispatch={}, pos=0):
         """
             cls is the class that will get the given route / API route
@@ -211,9 +210,9 @@ class Application(tornado.web.Application):
         def decorator(cls):
             # parent is the parent class of the relation
             cls_name = cls.__name__.lower()
-            handlers_tmp=getattr(self.__class__, "handlers_tmp", None)
+            handlers=getattr(self.__class__, "handlers", None)
             route_tuple = (route,cls, dispatch)
-            handlers_tmp.append((route_tuple,pos))
+            handlers.append((route_tuple,pos))
             #print("handlers: " + str(self.handlers))
             print("ROUTING: added route for: " + cls.__name__ +  ": " + route)
             return cls
