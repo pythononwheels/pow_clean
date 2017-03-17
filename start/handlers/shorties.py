@@ -41,3 +41,7 @@ class ErrorHandler(BaseHandler):
     def get(self):
         return self.render("404.tmpl", url=self.request.uri)
 
+@app.add_route("/test/([0-9]+)*")
+class TestHandler(BaseHandler):
+    def get(self, index=None):
+        self.write(index)

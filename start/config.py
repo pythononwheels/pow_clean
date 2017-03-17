@@ -31,7 +31,7 @@ templates = {
 myapp = {
     "default_format"    :   "json",
     "supported_formats" :   ["json", "csv", "xml"],
-    "base_url"          :   "https://localhost",
+    "base_url"          :   "http://localhost",
     "encoder"           :   {
             "json"  :   json,
             "csv"   :   {{appname}}.encoders.JsonToCsv(),

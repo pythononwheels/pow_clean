@@ -14,6 +14,16 @@ import argparse
 # alembic revision --autogenerate -m "message"
 # where message is the first cli parameter
 #
+def generate_migration(message="NONE"):
+    import warnings
+    from sqlalchemy import exc as sa_exc
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=sa_exc.SAWarning)
+    
+        alembic_cfg = Config(os.path.join(os.path.dirname(__file__), "alembic.ini"))
+        command.revision(alembic_cfg, autogenerate=True, message=args.message)
+    
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-n', "--name", action="store",
@@ -22,13 +32,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     if args.message:
-        import warnings
-        from sqlalchemy import exc as sa_exc
-
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", category=sa_exc.SAWarning)
-        
-            alembic_cfg = Config(os.path.join(os.path.dirname(__file__), "alembic.ini"))
-            command.revision(alembic_cfg, autogenerate=True, message=args.message)
-
-    
+        generate_migration(message=args.message)    
+    else:
+        print("You must give a migration name. -n <something>")

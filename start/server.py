@@ -17,8 +17,9 @@ from {{appname}}.application import Application
 import logging
 
 app=Application()
-if __name__ == "__main__":
-    print()
+def main(stdout=False):    
+    if stdout:
+        print() 
     #tornado.options.parse_command_line()
     #from tornado.log import enable_pretty_logging
     #enable_pretty_logging()
@@ -51,26 +52,34 @@ if __name__ == "__main__":
     app_logger.addHandler(log_handler)
 
     #app = tornado.web.Application(handlers=routes, **app_settings)
-    print()
-    print(50*"-")
-    print("starting the pow server Server ")
-    print(50*"-")
-    print("visit: http://localhost:" + str(app_settings["port"]))
-    for idx, elem in enumerate(db_settings.keys()):
-        if elem.lower() == "sql":
-            print("  DB #" +str(idx) + ": " + db_settings[elem]["type"])
-        else:
-            print("  DB #" +str(idx) + ": " + elem)
+    if stdout:
+        for idx, elem in enumerate(db_settings.keys()):
+            if elem.lower() == "sql":
+                print("  DB #" +str(idx) + ": " + db_settings[elem]["type"] + " is " + str(db_settings[elem]["enabled"]) )
+            else:
+                print("  DB #" +str(idx) + ": " + elem + " is " + str(db_settings[elem]["enabled"]))
     #app.listen(app_settings["port"], **server_settings)#
     #app=Application()
     #print(app)
-    print()
-    print(50*"-")
-    print("Final routes (order matters from here on ;) " )
-    print(50*"-")
-    for idx,elem in enumerate(app.handlers[0][1]):
-        print("#"+str(idx)+": " + str(elem.regex) + " --> " + str(elem.handler_class))
-
+    if stdout:
+        print()
+        print(50*"-")
+        print("Final routes (order matters from here on ;) " )
+        print(50*"-")
+        for idx,elem in enumerate(app.handlers[0][1]):
+            print("#"+str(idx)+": " + str(elem.regex) + " --> " + str(elem.handler_class))
+        
+        print()
+        print(50*"-")
+        print("starting the pow server Server ")
+        print(50*"-")
+        print("visit: http://localhost:" + str(app_settings["port"]))
+        print("running...")
     http_server = tornado.httpserver.HTTPServer(app)
     http_server.listen(app_settings["port"])
     tornado.ioloop.IOLoop.instance().start()
+    
+
+if __name__ == "__main__":
+    main(stdout=True)
+
