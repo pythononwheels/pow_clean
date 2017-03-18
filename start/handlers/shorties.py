@@ -7,9 +7,6 @@ from {{appname}}.application import app
 # (r"/([^/]+)/(.+)", ObjectHandler),
 # any regex goes. any group () will be handed to the handler 
 # 
-
-
-#  ( r"/" + action + r"/" + r"/(?P<id>.+)/edit/?" , { "get" : "edit", "params" : ["id"] }),
 @app.add_route("/dash/*")
 class DashboardHandler(BaseHandler):
     def get(self):
@@ -35,13 +32,14 @@ class IndexdHandler(BaseHandler):
         print("  index:" + str(index))
         self.render("index.tmpl")
 
-# this will be the last route 
+# this will be the last route since it has the lowest pos.
 @app.add_route(".*", pos=-3)
 class ErrorHandler(BaseHandler):
     def get(self):
         return self.render("404.tmpl", url=self.request.uri)
 
-@app.add_route("/test/([0-9]+)*")
+@app.add_route("/test/([0-9]+)*", dispatch={"get" : "test"})
 class TestHandler(BaseHandler):
-    def get(self, index=None):
+    # on HTTP GET this method will be called. See dispatch parameter.
+    def test(self, index=None):
         self.write(index)
