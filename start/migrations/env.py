@@ -3,6 +3,7 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 from logging.config import fileConfig
 from {{appname}}.powlib import get_class_name
+from {{appname}}.config import myapp
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -10,8 +11,8 @@ config = context.config
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
-fileConfig(config.config_file_name)
-
+#fileConfig(config.config_file_name)
+fileConfig(myapp.["logfile"])
 
 # add your model's MetaData object here
 # for 'autogenerate' support
@@ -23,7 +24,7 @@ fileConfig(config.config_file_name)
 # to the declarative schema
 # 
 import os
-exclude_list=["basemodel", "elastic", "tinydb"]
+exclude_list=["modelobject", "basemodel", "elastic", "tinydb"]
 #
 # the list of modules (excluding _ones and basemodel. Add more you dont want
 # to be loaded or inspected to exclude_list above.)

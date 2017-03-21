@@ -1,9 +1,16 @@
 #
 # Pow Default Tests
 # 
-# run:      pytest -q pow_tests.py
-# on osx:   pytest -k-notonosx pow_tests.py
+#
+# runtest script.
+# runs test with respect to some paramters
+# currently only os 
+
+import sys
 import pytest
+
+# possible sys.platform results:
+# http://stackoverflow.com/questions/446209/possible-values-from-sys-platform
 
 MODELNAME = "pow_test_model"
 class TestClass:
@@ -73,4 +80,18 @@ class TestClass:
         assert isinstance(m, PowTestModel)
 
 
+if __name__ == "__main__":
+    
+    print(55*"-")
+    print(" running pow Tests on: " + sys.platform)
+    print(" ... ")
+    if sys.platform.startswith("darwin"):
+        # osx
+        pytest.main(["-k-notonosx", "pow_tests.py"])
+    else:
+        ret = pytest.main(["pow_tests.py"])
+    
+    print(" Failures: " +str(ret))
+    print(55*"-")
+    
 

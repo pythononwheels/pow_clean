@@ -40,7 +40,7 @@ myapp = {
     "page_size"         : 10,
     "enable_authentication"     :   False,   # False, simple or custom
     "sql_auto_schema"   :   True,
-    "logfile"           :   "pow.log",
+    "logfile"           :   os.path.join(os.path.dirname(__file__),"pow.log"),
     "logformat"         :   logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'),
     #"environment"       :   "development"       # set the current environment (also see the db section)
 }

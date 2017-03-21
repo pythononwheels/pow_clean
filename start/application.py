@@ -205,15 +205,25 @@ class Application(tornado.web.Application):
             cls is automatically the decorated class
             self in this decorator is Application
             this will take a 1:1 raw tornado route
+
+            for regex with optional parts that are dropped 
+            (Non copturing like: (?: ...) see:
+            http://stackoverflow.com/questions/9018947/regex-string-with-optional-parts
         """
         def decorator(cls):
             # parent is the parent class of the relation
             cls_name = cls.__name__.lower()
             handlers=getattr(self.__class__, "handlers", None)
-            route_tuple = (route,cls, dispatch)
+            # this regex is added to every route to make 
+            # 1.the slash at the end optional
+            # 2.it possible to add a .format paramter.
+            # Example: route = /test -> also test.json will work
+            # Example: route = /test/([0-9]+) -> also /test/12.xml will work
+            fin_route = route  + r"(?:/?\.\w+)?/?"
+            route_tuple = (fin_route,cls, dispatch)
             handlers.append((route_tuple,pos))
             #print("handlers: " + str(self.handlers))
-            print("ROUTING: added route for: " + cls.__name__ +  ": " + route)
+            print("ROUTING: added route for: " + cls.__name__ +  ": " + route + " -> " + fin_route)
             return cls
         return decorator
     

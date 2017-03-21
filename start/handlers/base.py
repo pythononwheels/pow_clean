@@ -51,18 +51,57 @@ class BaseHandler(tornado.web.RequestHandler):
         self.format = None
 
     
-
+    def get_format_list(h=None):
+        """
+            uses a a header list from self.request.headers.get("Accept")
+            to just return the plain formats 
+            like: html, xml, xhtml or *
+        """
+        if not h:
+            h = self.reauest.headers.get("Accept")
+        headers_raw = h.split(",")
+        print(headers_raw)
+        h_final = []
+        # example Accept-header: text/html, application/xhtml+xml, application/xml;q=0.9, */*;q=0.8 
+        for elem in headers_raw:
+            # erase everything after ; and +
+            try:
+                elem = elem[elem.index("/")+1:]
+            except:
+                pass
+            try:
+                elem = elem[:elem.index(';')]
+            except:
+                pass
+            try:
+                elem = elem[:elem.index('+')]
+            except:
+                pass
+            h_final.append(elem)
+        return h_final
 
     def get_accept_format(self):
         """
-            format is either added as .format to the path
+            format is either added as accept header format 
+            or as .format to the path
             or default_format
             example: /post/12.json (will return json)
         """
-
+        # Try the Accept Header first:
+        format = None
+        accept_header = self.request.headers.get("Accept", None)
+        if accept_header:
+            format_list = self.get_format_list(accept_header)
+            # this is just taking the first format.
+            for fo in format_list:
+                if fo in myapp["supported_formats"]:
+                    return fo
+        
+        # try the .format
         if len (self.path.split(".")) > 1:
             format = self.path.split(".")[-1]
         else:
+            # take the default app format (see config.myapp)
             format = myapp["default_format"]
         
         if format in myapp["supported_formats"]:
