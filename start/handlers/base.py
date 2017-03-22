@@ -1,7 +1,7 @@
 import tornado.web
 import tornado.escape
 import json
-from {{appname}}.config import myapp 
+from {{appname}} import config as cfg
 from {{appname}}.models.{{dbtype}}.user import User
 
 
@@ -94,17 +94,20 @@ class BaseHandler(tornado.web.RequestHandler):
             format_list = self.get_format_list(accept_header)
             # this is just taking the first format.
             for fo in format_list:
-                if fo in myapp["supported_formats"]:
+                if fo in cfg.myapp["supported_formats"]:
                     return fo
         
-        # try the .format
-        if len (self.path.split(".")) > 1:
-            format = self.path.split(".")[-1]
-        else:
-            # take the default app format (see config.myapp)
-            format = myapp["default_format"]
+        if cfg.beta_settings["dot_format"]:
+            # try the .format
+            if len (self.path.split(".")) > 1:
+                format = self.path.split(".")[-1]
         
-        if format in myapp["supported_formats"]:
+        
+        if format == None:
+            # take the default app format (see config.cfg.myapp)
+            format = cfg.myapp["default_format"]
+        
+        if format in cfg.myapp["supported_formats"]:
             return format
         else:
             print("format error")
@@ -112,7 +115,7 @@ class BaseHandler(tornado.web.RequestHandler):
                     message="Format not supported. (see data.format)",
                     data={
                         "format was" : format,
-                        "supported_formats" : myapp["supported_formats"]
+                        "supported_formats" : cfg.myapp["supported_formats"]
                     }
             )
                 
@@ -217,7 +220,7 @@ class BaseHandler(tornado.web.RequestHandler):
         if not format:
             format = self.format
         if not format:
-            format = myapp["default_format"]
+            format = cfg.myapp["default_format"]
         if format.lower() == "html":
             # special case where we render the classical html templates
             viewname = self.__class__.__name__ + "_" + self.view
@@ -228,7 +231,7 @@ class BaseHandler(tornado.web.RequestHandler):
         if encoder:
             encoder = encoder
         else:
-            encoder = myapp["encoder"][format]
+            encoder = cfg.myapp["encoder"][format]
         self.write(encoder.dumps({
             "status"    : http_code,
             "message"   : message,
@@ -247,13 +250,13 @@ class BaseHandler(tornado.web.RequestHandler):
         if not format:
             format = self.format
         if not format:
-            format = myapp["default_format"]
+            format = cfg.myapp["default_format"]
         if format.lower() == "html":
             self.render("error.tmpl", data=data, message=message)
         if encoder:
             encoder = encoder
         else:
-            encoder = myapp["encoder"][format]
+            encoder = cfg.myapp["encoder"][format]
         self.write(encoder.dumps({
             "status"    : http_code,
             "data"      : data,

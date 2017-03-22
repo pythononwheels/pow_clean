@@ -8,7 +8,7 @@ import os
 import logging
 
 server_settings = {
-    "app_name"          :   "{{appname}}",
+    "base_url"          :   "http://localhost",
     "port"              :   8080,
     "debug"             :   True,
     "https"             :   False,
@@ -29,15 +29,15 @@ templates = {
 }
 
 myapp = {
+    "app_name"          :   "{{appname}}",
     "default_format"    :   "json",
     "supported_formats" :   ["json", "csv", "xml"],
-    "base_url"          :   "http://localhost",
     "encoder"           :   {
             "json"  :   json,
             "csv"   :   {{appname}}.encoders.JsonToCsv(),
             "xml"   :   {{appname}}.encoders.JsonToXml()
     },
-    "page_size"         : 10,
+    "page_size"         : 5,
     "enable_authentication"     :   False,   # False, simple or custom
     "sql_auto_schema"   :   True,
     "logfile"           :   os.path.join(os.path.dirname(__file__),"pow.log"),
@@ -74,7 +74,13 @@ database = {
     }
 }
 
-
+beta_settings = {
+    # Beta settings are erxperimental. You can find details for each Beta setting
+    # on www.pythononwheels.org/beta
+    
+    # Name          :    Enabled ?
+    "dot_format"    :   False
+}
 
 #from handlers.very_raw_own_handler import VeryRawOwnHandler
 routes = [

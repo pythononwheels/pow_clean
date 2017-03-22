@@ -1,6 +1,5 @@
 from {{appname}}.handlers.base import BaseHandler
-from {{appname}}.models.{{model_type}}.{{handler_name}} import {{handler_model_class_name}}
-from {{appname}}.config import myapp, database
+from {{appname}}.config import myapp
 from {{appname}}.application import app
 import tornado.web
 
@@ -26,46 +25,53 @@ class {{handler_name}}Handler(BaseHandler2):
     # SUPPORTED_METHODS = ("GET", "HEAD", "POST", "DELETE", "PATCH", "PUT", "OPTIONS")
     # you can overwrite any of those directly or leave the @add_rest_routes out to have a basic 
     # handler.
+    
+    # sample data
+    data = {
+        "1" : "one",
+        "2" : "two",
+        "3" : "three",
+        "4" : "four",
+        "5" : "five",
+        "6" : "six",
+        "7" : "seven",
+    }
 
     def show(self, id=None):
-        m={{handler_model_class_name}}()
-        res=m.find_one({{handler_model_class_name}}.id==id)
-        self.success(message="{{handler_model_class_name}} show", data=res.json_dump())
+        try:
+            self.success(message="{{handler_name}} show", data=data[id])
+        except Exception as e:
+            self.error(message="{{handler_name}} show: " + str(e))
 
     def list(self):
-        m={{handler_model_class_name}}()
-        res = m.find_all(as_json=True)
-        self.success(message="{{handler_model_class_name}}, index", data=res)         
+        self.success(message="{{handler_name}}, index", data=data)         
     
     def page(self, page=0):
-        m={{handler_model_class_name}}()
         page_size=myapp["page_size"]
-        if database["type"] == "sqlite":
-            limit=page_size
-        else:
-            limit=(page*page_size)+page_size
-        res = m.find_all(as_json=True, 
-            limit=limit,
-            offset=page*page_size
-            )
-        self.success(message="{{handler_model_class_name}} page: #" +str(page), data=res )  
+        try:
+            self.success(
+                message="{{handler_name}} page: #" +str(page), 
+                data=data[page*page_size:(page*page_size)+(page_size-1)] )  
+        except Exception as e:
+             self.error( message="{{handler_name}}: " + str(e))
+                 
 
     @tornado.web.authenticated
     def edit(self, id=None):
-        self.success(message="{{handler_model_class_name}}, edit id: " + str(id))
+        self.success(message="{{handler_name}}, edit id: " + str(id))
 
     @tornado.web.authenticated
     def new(self):
-        self.success("{{handler_model_class_name}}, new")
+        self.success("{{handler_name}}, new")
 
     @tornado.web.authenticated
     def create(self):
-        self.success(message="{{handler_model_class_name}}, create")
+        self.success(message="{{handler_name}}, create")
 
     @tornado.web.authenticated
     def update(self, id=None):
-        self.success("{{handler_model_class_name}}, update id: " + str(id))
+        self.success("{{handler_name}}, update id: " + str(id))
 
     @tornado.web.authenticated
     def destroy(self, id=None):
-        self.success("{{handler_model_class_name}}, destroy id: " + str(id))
+        self.success("{{handler_name}}, destroy id: " + str(id))

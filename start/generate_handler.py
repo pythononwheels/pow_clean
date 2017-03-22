@@ -7,7 +7,7 @@ import tornado.template as template
 import os.path
 import timeit
 import {{appname}}.powlib as lib
-from {{appname}}.config import templates
+import {{appname}}.config as cfg
 
 
 def camel_case(name):
@@ -24,12 +24,12 @@ def generate_handler(handler_name, model_type, appname=None):
     #
     # set some attributes
     #
-    loader = template.Loader(templates["stubs_path"])
+    loader = template.Loader(cfg.templates["stubs_path"])
     handler_class_name = camel_case(handler_name)
     #
     # create the controller
     #
-    ofile = open(os.path.join(templates["handler_path"], handler_name+".py"), "wb")
+    ofile = open(os.path.join(cfg.templates["handler_path"], handler_name+".py"), "wb")
     res = loader.load("rest_handler_template.py").generate( 
         handler_name=handler_name, 
         handler_class_name=handler_class_name,
@@ -51,7 +51,7 @@ if __name__ == "__main__":
     # db type
     # 
     parser.add_argument('-d', "--db", action="store", 
-                        dest="db", help='-d which_db (sql || tinydb || elastic) default = sql(sqlalchemy)',
+                        dest="db", help="-d which_db " + "|| ".join(cfg.database.keys()) + " || none ) default = sql(sqlalchemy)",
                         default="sql", required=True)
     args = parser.parse_args()
     #

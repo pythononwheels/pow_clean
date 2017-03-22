@@ -6,7 +6,7 @@ import os
 import os.path
 import sys
 
-from {{appname}}.config import server_settings as app_settings
+import {{appname}}.config as cfg
 from {{appname}}.powlib import merge_two_dicts
 from {{appname}}.database.sqldblib import Base, Session, engine
 
@@ -46,9 +46,9 @@ class Application(tornado.web.Application):
         # merge two dictionaries:  z = { **a, **b }
         # http://stackoverflow.com/questions/38987/how-to-merge-two-python-dictionaries-in-a-single-expression
         settings = merge_two_dicts( dict(
-            template_path=os.path.join(os.path.dirname(__file__), app_settings["template_path"]),
-            static_path=os.path.join(os.path.dirname(__file__), app_settings["static_path"])
-        ) , app_settings)
+            template_path=os.path.join(os.path.dirname(__file__), cfg.server_settings["template_path"]),
+            static_path=os.path.join(os.path.dirname(__file__), cfg.server_settings["static_path"])
+        ) , cfg.server_settings)
         super(Application, self).__init__(self.handlers, **settings)
         self.Session = Session
         self.engine = engine
@@ -184,8 +184,10 @@ class Application(tornado.web.Application):
                         { "get" : "show" , "put" : "update", "delete" : "delete", "params" : ["id"]} ),
                     ( r"/" + action + r"/?", { "get" : "list", "post" : "create" })                
                 ]
-                
-            
+            # BETA: Add the .format regex to the RESTpattern   
+            # this makes it possible to add a .format at an URL. Example /test/12.json (or /test/12/.json)
+            if cfg.beta_settings["dot_format"]:
+                routes = [(x[0]+ r"(?:/?\.\w+)?/?", x[1]) for x in routes]  
             #print("added the following routes: " + r)
             handlers=getattr(self.__class__, "handlers", None)
             for elem in routes:
@@ -214,12 +216,15 @@ class Application(tornado.web.Application):
             # parent is the parent class of the relation
             cls_name = cls.__name__.lower()
             handlers=getattr(self.__class__, "handlers", None)
-            # this regex is added to every route to make 
+            # BETA: this regex is added to every route to make 
             # 1.the slash at the end optional
             # 2.it possible to add a .format paramter.
             # Example: route = /test -> also test.json will work
-            # Example: route = /test/([0-9]+) -> also /test/12.xml will work
-            fin_route = route  + r"(?:/?\.\w+)?/?"
+            # Example: route = /test/([0-9]+) -> also /test/12.xml will work 
+            if cfg.beta_settings["dot_format"]:
+                fin_route = route  + r"(?:/?\.\w+)?/?"
+            else:
+                fin_route = route
             route_tuple = (fin_route,cls, dispatch)
             handlers.append((route_tuple,pos))
             #print("handlers: " + str(self.handlers))

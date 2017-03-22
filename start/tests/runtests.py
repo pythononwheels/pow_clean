@@ -19,7 +19,7 @@ if __name__ == "__main__":
         # osx
         pytest.main(["-k-notonosx", "pow_tests.py"])
     else:
-        ret = pytest.main([,"pow_tests.py"])
+        ret = pytest.main(["pow_tests.py"])
     
     print(" Failures: " +str(ret))
     print(55*"-")
