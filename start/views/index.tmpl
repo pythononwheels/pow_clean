@@ -229,7 +229,13 @@ def destroy(self, id=None):
                 Additionally you can set direct routes by simply adding the class 
                 decorator:  <code>@app.add_route("/")</code>. This will then call the default
                 HTTP methods of your handler (GET=get, PUT=put ...)
-
+<pre><code class="language-python">
+@app.add_route("/")
+class TestHandler(BaseHandler):
+    # on HTTP GET this method will be called.
+    def get(self):
+        self.write("Hello world!")
+</code></pre>
             </p>
           <p class="lead"> 
             You can also specify more repcisely which method to call for each HTTP VERB using the
