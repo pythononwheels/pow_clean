@@ -48,17 +48,17 @@ class BaseHandler(tornado.web.RequestHandler):
         if callable(before_handler):
             print("calling before_handler for " +  str(self.__class__))
             before_handler()
-        self.format = None
+        self.format = self.get_accept_format()
 
     
-    def get_format_list(h=None):
+    def get_format_list(self, h=None):
         """
             uses a a header list from self.request.headers.get("Accept")
             to just return the plain formats 
             like: html, xml, xhtml or *
         """
         if not h:
-            h = self.reauest.headers.get("Accept")
+            h = self.request.headers.get("Accept")
         headers_raw = h.split(",")
         print(headers_raw)
         h_final = []
@@ -92,7 +92,8 @@ class BaseHandler(tornado.web.RequestHandler):
         accept_header = self.request.headers.get("Accept", None)
         if accept_header:
             format_list = self.get_format_list(accept_header)
-            # this is just taking the first format.
+            print("formats from Accept-Header: " + str(format_list))
+            # returns the first matched format from ordered Accept-Header list.
             for fo in format_list:
                 if fo in cfg.myapp["supported_formats"]:
                     return fo
@@ -146,7 +147,7 @@ class BaseHandler(tornado.web.RequestHandler):
                     # call the given method
                     return f(*args, **params)
             except TypeError:
-                self.application.log_event(self, 
+                self.application.log_request(self, 
                     message="""method was None. But you also did not implement
                     one of the to standard HTTP methods (get,put ...)""")
                 self.error(
@@ -216,6 +217,7 @@ class BaseHandler(tornado.web.RequestHandler):
             for other formats you have to define an encoder in config.py
             (see json as an example)
         """
+        self.application.log_request(self, message="base.success:" + message)
         self.set_status(http_code)
         if not format:
             format = self.format
@@ -244,7 +246,7 @@ class BaseHandler(tornado.web.RequestHandler):
     def error(self, message=None, data=None, succ=None, prev=None,
         http_code=500, format=None, encoder=None):
         
-        self.application.log_event(self, message=message)
+        self.application.log_request(self, message="base.error:" + message)
         self.set_status(http_code)
         
         if not format:

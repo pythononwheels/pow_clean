@@ -4,7 +4,7 @@ import json
 from {{appname}}.config import myapp 
 from {{appname}}.handlers.base import BaseHandler
 
-class PowHandler(BaseHandler2):
+class PowHandler(BaseHandler):
     """
         The Base PowHandler 
         Place to put common stuff which will remain unaffected by any PoW Changes.

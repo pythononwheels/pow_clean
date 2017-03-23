@@ -13,7 +13,7 @@ from {{appname}}.config import server_settings as app_settings
 from {{appname}}.config import myapp 
 from {{appname}}.config import database as db_settings
 from {{appname}}.powlib import merge_two_dicts
-from {{appname}}.application import Application
+from {{appname}}.application import Application, log_handler
 import logging
 
 app=Application()
@@ -31,12 +31,6 @@ def main(stdout=False):
     tornado.options.options.log_file_max_size = 10 * 1000 * 1000
     
     tornado.options.parse_command_line()
-    
-    formatter = myapp["logformat"]
-
-    log_handler = logging.FileHandler(os.path.abspath(os.path.normpath(myapp["logfile"])))
-    #log_handler.setLevel(db_handler_log_level)
-    log_handler.setFormatter(formatter)
 
     gen_logger = logging.getLogger("tornado.general")
     gen_logger.addHandler(log_handler)

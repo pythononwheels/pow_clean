@@ -25,13 +25,14 @@ templates = {
     "template_path"     :   server_settings["template_path"],
     "handler_path"      :   os.path.join(os.path.dirname(__file__), "handlers"),
     "model_path"        :   os.path.join(os.path.dirname(__file__), "models"),
-    "stubs_path"        :   os.path.join(os.path.dirname(__file__), "stubs")
+    "stubs_path"        :   os.path.join(os.path.dirname(__file__), "stubs"),
+    "views_path"        :   os.path.join(os.path.dirname(__file__), "views")
 }
 
 myapp = {
     "app_name"          :   "{{appname}}",
     "default_format"    :   "json",
-    "supported_formats" :   ["json", "csv", "xml"],
+    "supported_formats" :   ["json", "csv", "xml", "html"],
     "encoder"           :   {
             "json"  :   json,
             "csv"   :   {{appname}}.encoders.JsonToCsv(),

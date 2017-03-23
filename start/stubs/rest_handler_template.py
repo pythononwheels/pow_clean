@@ -1,17 +1,18 @@
-from {{appname}}.handlers.base import BaseHandler
+#from {{appname}}.handlers.base import BaseHandler
+from {{appname}}.handlers.powhandler import PowHandler
 from {{appname}}.models.{{model_type}}.{{handler_name}} import {{handler_model_class_name}}
 from {{appname}}.config import myapp, database
 from {{appname}}.application import app
 import tornado.web
 
 @app.add_rest_routes("{{handler_name}}")
-class {{handler_name}}Handler(BaseHandler2):
+class {{handler_name}}Handler(PowHandler):
 
     # 
     # every pow handler automatically gets these RESTful routes
     # thru the @app.add_rest_routes() decorator.
     #
-    # 1  GET    /{{handler_name}}        #=> index
+    # 1  GET    /{{handler_name}}        #=> list
     # 2  GET    /{{handler_name}}/1      #=> show
     # 3  GET    /{{handler_name}}/new    #=> new
     # 4  GET    /{{handler_name}}/1/edit #=> edit 
@@ -26,7 +27,7 @@ class {{handler_name}}Handler(BaseHandler2):
     # SUPPORTED_METHODS = ("GET", "HEAD", "POST", "DELETE", "PATCH", "PUT", "OPTIONS")
     # you can overwrite any of those directly or leave the @add_rest_routes out to have a basic 
     # handler.
-
+    
     def show(self, id=None):
         m={{handler_model_class_name}}()
         res=m.find_one({{handler_model_class_name}}.id==id)
@@ -49,7 +50,10 @@ class {{handler_name}}Handler(BaseHandler2):
             offset=page*page_size
             )
         self.success(message="{{handler_model_class_name}} page: #" +str(page), data=res )  
-
+    
+    def search(self):
+        return self.error(message="{{handler_name}} search: " + not implemented yet )
+        
     @tornado.web.authenticated
     def edit(self, id=None):
         self.success(message="{{handler_model_class_name}}, edit id: " + str(id))

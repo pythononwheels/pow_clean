@@ -29,8 +29,13 @@ def generate_handler(handler_name, model_type, appname=None):
     #
     # create the controller
     #
-    ofile = open(os.path.join(cfg.templates["handler_path"], handler_name+".py"), "wb")
-    res = loader.load("rest_handler_template.py").generate( 
+    if model_type.lower() == "none":
+        template_file =  "rest_handler_nodb_template.py"
+    else:
+        template_file = "rest_handler_template.py"
+    ofile_name = os.path.join(cfg.templates["handler_path"], handler_name+".py")
+    ofile = open(ofile_name, "wb")
+    res = loader.load(template_file).generate( 
         handler_name=handler_name, 
         handler_class_name=handler_class_name,
         handler_model_class_name=handler_class_name,
@@ -39,6 +44,7 @@ def generate_handler(handler_name, model_type, appname=None):
         )
     ofile.write(res)
     ofile.close()
+    print("... created: " + ofile_name)
     return
 
 
@@ -51,13 +57,13 @@ if __name__ == "__main__":
     # db type
     # 
     parser.add_argument('-d', "--db", action="store", 
-                        dest="db", help="-d which_db " + "|| ".join(cfg.database.keys()) + " || none ) default = sql(sqlalchemy)",
-                        default="sql", required=True)
+                        dest="db", help="-d which_db (" + "|| ".join(cfg.database.keys()) + " || none) default=none",
+                        default="none", required=False)
     args = parser.parse_args()
     #
     # show some args
     #
-    print("all args: ", args)
+    #print("all args: ", args)
     #print(dir(args))
     print("CamelCased handler name: ", camel_case(args.name))
     generate_handler(args.name, args.db, appname="{{appname}}")

@@ -4,6 +4,7 @@ from sqlalchemy import engine_from_config, pool
 from logging.config import fileConfig
 from {{appname}}.powlib import get_class_name
 from {{appname}}.config import myapp
+from {{appname}}.application import log_handler
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -11,9 +12,9 @@ config = context.config
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
-#fileConfig(config.config_file_name)
-fileConfig(myapp.["logfile"])
-
+fileConfig(config.config_file_name)
+#fileConfig(myapp["logfile"])
+logging.getLogger('alembic').addHandler(log_handler)
 # add your model's MetaData object here
 # for 'autogenerate' support
 # from myapp import mymodel

@@ -9,11 +9,18 @@ import sys
 import {{appname}}.config as cfg
 from {{appname}}.powlib import merge_two_dicts
 from {{appname}}.database.sqldblib import Base, Session, engine
-
+from {{appname}}.config import myapp
 from {{appname}}.config import routes
 from tornado.log import access_log
 import logging
 import datetime
+
+
+# global logger settings
+formatter = myapp["logformat"]
+log_handler = logging.FileHandler(os.path.abspath(os.path.normpath(myapp["logfile"])))
+#log_handler.setLevel(db_handler_log_level)
+log_handler.setFormatter(formatter)
 
 class Application(tornado.web.Application):
     #
@@ -161,29 +168,21 @@ class Application(tornado.web.Application):
             #print(cls_name)
             action=route
             
-            # routes
+            action_part = action
             if api:
-                routes = [
-                    # tuple (http_method, route, { http_method : method_to_call_in_handler, .. })
-                    ( r"/" + action + r"/" + str(api) + r"/(?P<id>.+)/edit/?" , { "get" : "edit", "params" : ["id"] }),
-                    ( r"/" + action + r"/" + str(api) + r"/page/(?P<page>.+)/?", { "get" : "page", "params" : ["page"] }),
-                    ( r"/" + action + r"/" + str(api) + r"/new/?", {"get" : "new"}),
-                    ( r"/" + action + r"/" + str(api) + r"/(?P<id>.+)/?", 
-                        { "get" : "show" , "put" : "update", "delete" : "delete", "params" : ["id"]} ),
-                    ( r"/" + action + r"/" + str(api) + r"/?", { "get" : "list", "post" : "create" } )                   
-                    
-                    
-                ]
-            else:
-                routes = [
-                    # tuple (http_method, route, { http_method : method_to_call_in_handler, .. })
-                    ( r"/" + action + r"/(?P<id>.+)/edit/?" , { "get" : "edit", "params" : ["id"] }),
-                    ( r"/" + action + r"/page/(?P<page>.+)/?", { "get" : "page", "params" : ["page"] }),
-                    ( r"/" + action + r"/new/?", {"get" : "new"}),
-                    ( r"/" + action + r"/(?P<id>.+)/?", 
-                        { "get" : "show" , "put" : "update", "delete" : "delete", "params" : ["id"]} ),
-                    ( r"/" + action + r"/?", { "get" : "list", "post" : "create" })                
-                ]
+                action_part + r"/" + str(api)
+            
+            routes = [
+                # tuple (http_method, route, { http_method : method_to_call_in_handler, .. })
+                ( r"/" + action_part + r"/search/?" , { "get" : "search" }),
+                ( r"/" + action_part + r"/(?P<id>[0-9]+)/edit/?" , { "get" : "edit", "params" : ["id"] }),
+                ( r"/" + action_part + r"/page/?(?P<page>[0-9]+)?/?", { "get" : "page", "params" : ["page"] }),
+                ( r"/" + action_part + r"/new/?", {"get" : "new"}),
+                ( r"/" + action_part + r"/?(?P<id>[0-9]+)?/?", 
+                    { "get" : "show" , "put" : "update", "delete" : "delete", "params" : ["id"]} ),
+                 ( r"/" + action_part + r"/show/?(?P<id>[0-9]+)?/?", { "get" : "show" , "params" : ["id"]} ),
+                ( r"/" + action_part + r"/?", { "get" : "list", "post" : "create" })                
+            ]
             # BETA: Add the .format regex to the RESTpattern   
             # this makes it possible to add a .format at an URL. Example /test/12.json (or /test/12/.json)
             if cfg.beta_settings["dot_format"]:

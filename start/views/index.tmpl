@@ -38,7 +38,6 @@
                 <li>sqlalchemy ORM</li>
                 <li>alembic migrations (automatically generated behind the scenes)</li>
                 <li>cerberus schemas and validation on board</li>
-                <li>react.js views</li>
                 <li>tornado templates</li>
                 </ul>
         </div>
@@ -205,19 +204,23 @@ def destroy(self, id=None):
 </code></pre>
             <br />
             <p class="lead">
-                Additionally you can set direct routes by simply adding the class decorator: <code>@app.add_route("/post/([0-9+])", method="somemethod") 
-                  </code>to add a direct route: matching the <code>regular expression</code> : <code>/post/([0-9+])</code> 
-                  and then calling the given method of your handler class. The regex group <code>([0-9+])</code> will be handed as a parameter to
-                  <code>somemethod(self, index)</code>
+                Additionally you can set direct routes by simply adding the class 
+                decorator: <code>@app.add_route("/test/([0-9]+)*", dispatch={"get" : "test"})
+                  </code>to add a direct route: matching the <code>regular expression</code> : 
+                  <code>/test/([0-9+])</code> 
+                  and then calling the given method of your handler class. The regex 
+                  group <code>([0-9+])</code> will be handed as a parameter to <code>somemethod(self, index)</code>
             </p>
             <br />
 <pre><code class="language-python">
-@app.add_route("/thanks/([0-9]+)*", method="testme")
-class ThanksHandler(BaseHandler):
-    def testme(self, index=None):
-        self.render("thanks.tmpl", index=index)
+@app.add_route("/test/([0-9]+)*", dispatch={"get" : "test"})
+class TestHandler(BaseHandler):
+    # on HTTP GET this method will be called. See dispatch parameter.
+    def test(self, index=None):
+        self.write(index)
 </code></pre>
-          </div>
+      
+      </div>
           <div class="col-md-2">
             &nbsp;
           </div>

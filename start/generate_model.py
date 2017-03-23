@@ -66,7 +66,7 @@ if __name__ == "__main__":
     #
     # show some args
     #
-    print("all args: ", args)
+    #print("all args: ", args)
     #print(dir(args))
     #print("pluralized model name: ", pluralize(args.name))
     generate_model(args.name, args.type, appname="{{appname}}")
