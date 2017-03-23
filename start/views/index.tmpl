@@ -13,8 +13,8 @@
            <hr>
         <p class="lead">The quick and easy generative Webframework for python.</p>
         <p>
-          <a class="btn btn-lg btn-success" href="#" role="button">Take the tutorial</a>
-          <a class="btn btn-lg btn-info" href="#" role="button">Read the docs</a>
+          <a class="btn btn-lg btn-success" href="https://github.com/pythononwheels/pow_clean" role="button">Check it on Github</a>
+          <a class="btn btn-lg btn-info" href="http://www.pythononwheels.org/docs/gettingstarted" role="button">Getting Started</a>
         </p>
 
       </div>
@@ -33,12 +33,18 @@
                 </p>
                 <h3> Based on a very Strong foundation: </h3>
                 <ul>
-                <li>python 3.x</li>
-                <li>tornado webserver</li>
-                <li>sqlalchemy ORM</li>
-                <li>alembic migrations (automatically generated behind the scenes)</li>
-                <li>cerberus schemas and validation on board</li>
-                <li>tornado templates</li>
+                <li><a href="https://www.python.org/">python 3.x</a></li>
+                <li><a href="http://www.tornadoweb.org/en/stable/">tornado</a> webserver</li>
+                <li>Supported Databases
+                  <ul> 
+                    <li> SQL: <a href="https://www.sqlalchemy.org/">sqlalchemy</a> ORM (SQLite, MySQL, PostGres, MSSQL, ORacle and more ) </li>
+                    <li> NoSQL: <a href="http://tinydb.readthedocs.io/en/latest/">tinyDB</a>, 
+                    <a href="https://www.elastic.co/products/elasticsearch">elasticsearch</a>, (mongoDB coming..) </li>
+                  </ul>
+                </li>
+                <li><a href="http://alembic.zzzcomputing.com/en/latest/">alembic</a> migrations (automatically generated behind the scenes)</li>
+                <li><a href="http://docs.python-cerberus.org/en/stable/">cerberus</a> schemas and validation on board</li>
+                <li><a href="http://www.tornadoweb.org/en/stable/template.html">tornado templates</a></li>
                 </ul>
         </div>
         <div class="col-md-2">
@@ -61,7 +67,8 @@
 
                 <p class="lead">
                   With PythonOnWheels you simply add a class decorator like <code>@relation.has_many("comments") </code> to the Post model and every Post can have comments. It will 
-                  be automatically mapped to the DB (SQLite, Postgres, MySQL, MariaDb, Oracle, MSSQL ...) and to all related Models.
+                  be automatically mapped to the DB (SQLite, Postgres, MySQL, MariaDb, Oracle, MSSQL ...) and to all related 
+                  <code>comment</code> Models.
                 </p>
                 <p>
                   Supported relation types are:
@@ -74,14 +81,17 @@
                     <li><code>@relation.tree()</code> (decorated class has adjacence list (is a tree))</li>
                   </ul>
                 </p>
-                <p>For details of the implementation see <a href="http://docs.sqlalchemy.org/en/latest/orm/relationships.html">
+                <p>For details see <a href="http://docs.sqlalchemy.org/en/latest/orm/relationships.html">
                 sqlalchemy relation documentation</a></p>
                 <p class="lead">
-                  Here is a typical pow model using a cerberus schema definition.
+                  <h2 class="featurette-heading">All pow models (SQL or NoSQL) use a 
+                    <a href="http://docs.python-cerberus.org/en/stable/">cerberus</a> schema as definition.
+                    <span class="text-muted">This means you have validation on board for every model and you can easily switch from 
+                      SQL to NoSQL</span> </h2>
                   <ul>
                     <li>the <code>@relation.setup_schema() </code> decorator will map this schema to a vaild
-                    sqlalchemy column definition set.</li>
-                    <li>the model will also automatically get all the right Foreign_Keys and python attributes to
+                    sqlalchemy (or specific NoSQL) column definition set.</li>
+                    <li><b>SQL only:</b> model will also automatically get all the right Foreign_Keys and python attributes to
                     create a has_many relationship to the <code> comments </code> model. 
                     This is all done for you with the <code>@relation.has_many("comments") </code>
                   </ul>
@@ -124,9 +134,11 @@ class Post(Base):
           &nbsp;
         </div>
         <div class="col-md-8">
-              <h2 class="featurette-heading">Probably the most simple RESTrouting out there! <span class="text-muted">Flask like direct routes included as well.</span></h2>
+              <h2 class="featurette-heading">Probably the most simple RESTrouting out there! 
+                <span class="text-muted">One decorator. Done!</span>
+                </h2>
                 <p class="lead">
-                  With PythonOnWheels you simply add a class decorator like <code>@app.add_rest_routes("base") </code> 
+                  With PythonOnWheels you simply add a class decorator like <code>@app.add_rest_routes("basename") </code> 
                   to your handler and you get all the typical REST routes mapped to the according CRUD methods of your 
                   handler class.
 
@@ -203,23 +215,37 @@ def destroy(self, id=None):
     self.success("Comment, destroy id: " + str(id))
 </code></pre>
             <br />
+            <h2 class="featurette-heading">Direct routes 
+                <span class="text-muted"><a href="http://flask.pocoo.org/">Flask</a> like direct routes included as well.
+                <small>I Think Flask/Werkzeug routing is the best direct routing out there.</small>
+                </span></h2>
+            <br />
             <p class="lead">
                 Additionally you can set direct routes by simply adding the class 
-                decorator: <code>@app.add_route("/test/([0-9]+)*", dispatch={"get" : "test"})
-                  </code>to add a direct route: matching the <code>regular expression</code> : 
-                  <code>/test/([0-9+])</code> 
-                  and then calling the given method of your handler class. The regex 
-                  group <code>([0-9+])</code> will be handed as a parameter to <code>somemethod(self, index)</code>
+                decorator:  <code>@app.add_route("/")</code>. This will then call the default
+                HTTP methods of your handler (GET=get, PUT=put ...)
+
             </p>
-            <br />
+          <p class="lead"> 
+            You can also specify more repcisely which method to call for each HTTP VERB using the
+            <code>dispatch</code> parameter.
+            <p class="lead">Direct route example:</p>
 <pre><code class="language-python">
 @app.add_route("/test/([0-9]+)*", dispatch={"get" : "test"})
 class TestHandler(BaseHandler):
-    # on HTTP GET this method will be called. See dispatch parameter.
+    # on HTTP GET this method will be called.
     def test(self, index=None):
         self.write(index)
 </code></pre>
-      
+            <br>
+        <code>@app.add_route("/test/([0-9]+)*", dispatch={"get" : "test"})
+                  </code>to add a direct route: matching the <code>regular expression</code> : 
+                  <code>/test/([0-9+])</code> 
+                  and then calling the given method of your handler class. The regex 
+                  group <code>([0-9+])</code> will be handed as the first parameter to <code>test(self, index)</code>
+            </p>
+            <br />
+            
       </div>
           <div class="col-md-2">
             &nbsp;
@@ -264,6 +290,7 @@ class TestHandler(BaseHandler):
               <li>validation on board with cerberus schemas</li>
                 <ul><li><code>model.validate() => executes cerberus validator</code></li></ul>
               </ul>
+              <h2 class="featurette-heading">I call it "SQUEEZY" = <span class="text-muted">Simlpe Quick and Easy ;)</span></h2> 
             </div>
             <div class="col-md-1">
               &nbsp;
@@ -279,8 +306,8 @@ class TestHandler(BaseHandler):
       <div class="jumbotron">
         <p class="lead">Try it out now. <span class="text-muted">5 Minutes Tutorial text or video.</span></p>
         <p>
-          <a class="btn btn-lg btn-success" href="#" role="button">Video tutorial</a>
-          <a class="btn btn-lg btn-info" href="#" role="button">Text tutorial</a>
+          <a class="btn btn-lg btn-success" href="https://github.com/pythononwheels/pow_clean" role="button">Check it on Github</a>
+          <a class="btn btn-lg btn-info" href="http://www.pythononwheels.org/docs/gettingstarted" role="button">Getting Started</a>
         </p>
       </div>
 

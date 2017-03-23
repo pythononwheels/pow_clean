@@ -17,7 +17,7 @@ if __name__ == "__main__":
     print(" ... ")
     if sys.platform.startswith("darwin"):
         # osx
-        pytest.main(["-k-notonosx", "pow_tests.py"])
+        ret = pytest.main(["-k-notonosx", "pow_tests.py"])
     else:
         ret = pytest.main(["pow_tests.py"])
     
