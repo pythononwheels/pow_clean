@@ -75,6 +75,12 @@
                   be automatically mapped to the DB (SQLite, Postgres, MySQL, MariaDb, Oracle, MSSQL ...) and to all related 
                   <code>comment</code> Models.
                 </p>
+                <pre><code class="language-python">
+@relation.has_many("comments")
+class Post(Base):
+      # Alll your model code below here ..
+      .....
+      </code></pre>
                 <p>
                   Supported relation types are:
                   <hr>
